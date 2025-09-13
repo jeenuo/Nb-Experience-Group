@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title data-translate="experience.title">체험단 등록 - 내ㅁ바 마케팅</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="experience-styles.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="script.js" defer></script>
+    <script src="experience-script.js" defer></script>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <div class="header-left">
+                <div class="logo">
+                    <i class="fas fa-hand-holding-heart"></i>
+                    <span data-translate="brand.name">내손안에 슈퍼바이저</span>
+                </div>
+            </div>
+            
+            <div class="header-center">
+                <div class="search-bar" onclick="goToSearch()">
+                    <input type="text" placeholder="체험단 상품을 찾아보세요!" data-translate="search.placeholder" readonly>
+                    <i class="fas fa-search"></i>
+                </div>
+            </div>
+            
+            <div class="header-right">
+                <nav class="nav-links">
+                    <a href="index.html" data-translate="nav.main">메인</a>
+                    <a href="experience-registration.html" class="active" data-translate="nav.experience">체험단 모집</a>
+                    <a href="hotplace.html" data-translate="nav.hotplace">핫플 맛집</a>
+                    <a href="#" data-translate="nav.guide">이용가이드</a>
+                </nav>
+                <div class="language-selector">
+                    <div class="language-widget">
+                        <div class="language-icon">
+                            <i class="fas fa-globe"></i>
+                        </div>
+                        <button class="language-btn" id="languageBtn">
+                            <span id="currentLanguage">한국어</span>
+                            <i class="fas fa-chevron-down"></i>
+                        </button>
+                        <div class="language-dropdown" id="languageDropdown">
+                            <div class="language-option" data-lang="ko">
+                                <span class="flag">🇰🇷</span>
+                                <span>한국어</span>
+                            </div>
+                            <div class="language-option" data-lang="zh">
+                                <span class="flag">🇨🇳</span>
+                                <span>中文</span>
+                            </div>
+                            <div class="language-option" data-lang="en">
+                                <span class="flag">🇺🇸</span>
+                                <span>English</span>
+                            </div>
+                            <div class="language-option" data-lang="ja">
+                                <span class="flag">🇯🇵</span>
+                                <span>日本語</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="user-icons">
+                    <i class="fas fa-user"></i>
+                    <i class="fas fa-shopping-cart"></i>
+                    <i class="fas fa-bell"></i>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="experience-main">
+        <div class="container">
+            <div class="experience-header">
+                <h1 data-translate="experience.title">체험단 등록</h1>
+                <button class="load-previous-btn" data-translate="experience.load_previous">
+                    <i class="fas fa-upload"></i>
+                    이전 체험단 불러오기
+                </button>
+            </div>
+
+            <form class="experience-form" id="experienceForm">
+                <!-- 1. 기본 정보 -->
+                <div class="form-section">
+                    <div class="section-header">
+                        <span class="section-number">1</span>
+                        <h2 data-translate="experience.basic_info">기본 정보</h2>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="companyName" data-translate="experience.company_name">상호명</label>
+                        <p class="form-instruction" data-translate="experience.company_instruction">
+                            방문형/포장형의 경우 네이버 플레이스에 등록되어 있는 업체명으로 입력해 주세요
+                        </p>
+                        <input type="text" id="companyName" name="companyName" 
+                               placeholder="상호명을 작성해 주세요" data-translate="experience.company_placeholder" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="region" data-translate="experience.region">지역</label>
+                        <div class="custom-select" id="regionSelect">
+                            <div class="select-trigger" id="regionTrigger">
+                                <span class="select-placeholder" data-translate="experience.region_select">지역을 선택하세요</span>
+                                <i class="fas fa-chevron-up select-arrow"></i>
+                            </div>
+                            <div class="select-options" id="regionOptions">
+                                <div class="select-option" data-value="seoul">서울</div>
+                                <div class="select-option" data-value="gyeonggi">경기</div>
+                                <div class="select-option" data-value="incheon">인천</div>
+                                <div class="select-option" data-value="busan">부산</div>
+                                <div class="select-option" data-value="daegu">대구</div>
+                                <div class="select-option" data-value="gwangju">광주</div>
+                                <div class="select-option" data-value="daejeon">대전</div>
+                                <div class="select-option" data-value="ulsan">울산</div>
+                                <div class="select-option" data-value="sejong">세종</div>
+                                <div class="select-option" data-value="gangwon">강원</div>
+                                <div class="select-option" data-value="chungbuk">충북</div>
+                                <div class="select-option" data-value="chungnam">충남</div>
+                                <div class="select-option" data-value="jeonbuk">전북</div>
+                                <div class="select-option" data-value="jeonnam">전남</div>
+                                <div class="select-option" data-value="gyeongbuk">경북</div>
+                                <div class="select-option" data-value="gyeongnam">경남</div>
+                                <div class="select-option" data-value="jeju">제주</div>
+                            </div>
+                        </div>
+                        <input type="hidden" id="region" name="region" required>
+                    </div>
+                    
+                    
+                    <div class="form-group">
+                        <label for="category" data-translate="experience.category">카테고리</label>
+                        <div class="custom-select" id="categorySelect">
+                            <div class="select-trigger" id="categoryTrigger">
+                                <span class="select-placeholder" data-translate="experience.category_select">선택</span>
+                                <i class="fas fa-chevron-up select-arrow"></i>
+                            </div>
+                            <div class="select-options" id="categoryOptions">
+                                <div class="select-option" data-value="restaurant" data-translate="experience.category_restaurant">맛집</div>
+                                <div class="select-option" data-value="food" data-translate="experience.category_food">식품</div>
+                                <div class="select-option" data-value="beauty" data-translate="experience.category_beauty">뷰티</div>
+                                <div class="select-option" data-value="travel" data-translate="experience.category_travel">여행</div>
+                                <div class="select-option" data-value="digital" data-translate="experience.category_digital">디지털</div>
+                                <div class="select-option" data-value="pets" data-translate="experience.category_pets">반려동물</div>
+                                <div class="select-option" data-value="other" data-translate="experience.category_other">기타</div>
+                            </div>
+                        </div>
+                        <input type="hidden" id="category" name="category" required>
+                    </div>
+                </div>
+
+                <!-- 2. 썸네일 등록 -->
+                <div class="form-section">
+                    <div class="section-header">
+                        <span class="section-number">2</span>
+                        <h2 data-translate="experience.thumbnail">썸네일 등록</h2>
+                    </div>
+                    
+                    <div class="file-upload-area" id="fileUploadArea">
+                        <div class="upload-content">
+                            <div class="upload-icon">
+                                <i class="fas fa-image"></i>
+                                <i class="fas fa-plus"></i>
+                            </div>
+                            <p class="upload-text" data-translate="experience.upload_instruction">클릭 하거나 드래그/드롭 해주세요</p>
+                            <p class="upload-format" data-translate="experience.upload_format">5MB 이하의 JPEG, PNG 파일</p>
+                        </div>
+                        <input type="file" id="thumbnailFile" name="thumbnailFile" accept="image/jpeg,image/png" hidden required>
+                    </div>
+                    
+                    <div class="upload-warning">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <span data-translate="experience.upload_warning">
+                            검수 불가 사진: 간판/로고/화면 캡쳐 / 텍스트가 크게 들어간 이미지
+                        </span>
+                    </div>
+                    
+                    <div class="uploaded-files" id="uploadedFiles"></div>
+                </div>
+
+                <!-- 3. 담당자 연락처 -->
+                <div class="form-section">
+                    <div class="section-header">
+                        <span class="section-number">3</span>
+                        <h2 data-translate="experience.contact">담당자 연락처</h2>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="contactPhone" data-translate="experience.contact_phone">담당자 연락처</label>
+                        <div class="phone-input-group">
+                            <input type="tel" id="phone1" name="phone1" maxlength="3" value="010" readonly required>
+                            <span class="phone-separator">-</span>
+                            <input type="tel" id="phone2" name="phone2" maxlength="4" placeholder="1234" required>
+                            <span class="phone-separator">-</span>
+                            <input type="tel" id="phone3" name="phone3" maxlength="4" placeholder="1234" required>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 4. 채널 선택 -->
+                <div class="form-section">
+                    <div class="section-header">
+                        <span class="section-number">4</span>
+                        <h2 data-translate="experience.channels">채널</h2>
+                    </div>
+                    
+                    <div class="channel-selection">
+                        <div class="channel-grid">
+                            <div class="channel-option">
+                                <input type="radio" id="channel_blog" name="channel" value="blog" required>
+                                <label for="channel_blog" class="channel-label">
+                                    <div class="channel-title" data-translate="experience.channel_blog">블로그</div>
+                                    <div class="channel-description" data-translate="experience.channel_blog_desc">블로그 게시물 1건 업로드</div>
+                                </label>
+                            </div>
+                            
+                            <div class="channel-option">
+                                <input type="radio" id="channel_blog_clip" name="channel" value="blog_clip" required>
+                                <label for="channel_blog_clip" class="channel-label">
+                                    <div class="channel-title" data-translate="experience.channel_blog_clip">블로그+클립</div>
+                                    <div class="channel-description" data-translate="experience.channel_blog_clip_desc">1회 체험으로 블로그 게시물 1건+15초 영상(클립) 1개</div>
+                                </label>
+                            </div>
+                            
+                            <div class="channel-option">
+                                <input type="radio" id="channel_reels" name="channel" value="reels" required>
+                                <label for="channel_reels" class="channel-label">
+                                    <div class="channel-title" data-translate="experience.channel_reels">릴스</div>
+                                    <div class="channel-description" data-translate="experience.channel_reels_desc">30초 이상의 영상(인스타그램 릴스) 1개 업로드</div>
+                                </label>
+                            </div>
+                            
+                            <div class="channel-option">
+                                <input type="radio" id="channel_shorts" name="channel" value="shorts" required>
+                                <label for="channel_shorts" class="channel-label">
+                                    <div class="channel-title" data-translate="experience.channel_shorts">쇼츠</div>
+                                    <div class="channel-description" data-translate="experience.channel_shorts_desc">30초 이상의 영상(유튜브 쇼츠) 1개 업로드</div>
+                                </label>
+                            </div>
+                            
+                            <div class="channel-option">
+                                <input type="radio" id="channel_instagram" name="channel" value="instagram" required>
+                                <label for="channel_instagram" class="channel-label">
+                                    <div class="channel-title" data-translate="experience.channel_instagram">인스타그램</div>
+                                    <div class="channel-description" data-translate="experience.channel_instagram_desc">사진 3장 이상의 피드 게시물 1개 업로드</div>
+                                </label>
+                            </div>
+                            
+                            <div class="channel-option">
+                                <input type="radio" id="channel_clip" name="channel" value="clip" required>
+                                <label for="channel_clip" class="channel-label">
+                                    <div class="channel-title" data-translate="experience.channel_clip">블로그 클립</div>
+                                    <div class="channel-description" data-translate="experience.channel_clip_desc">30초 영상(클립) 1개 업로드</div>
+                                </label>
+                            </div>
+                            
+                            <div class="channel-option">
+                                <input type="radio" id="channel_youtube" name="channel" value="youtube" required>
+                                <label for="channel_youtube" class="channel-label">
+                                    <div class="channel-title" data-translate="experience.channel_youtube">유튜브</div>
+                                    <div class="channel-description" data-translate="experience.channel_youtube_desc">3분 이상의 영상(유튜브) 1개 업로드</div>
+                                </label>
+                            </div>
+                            
+                            <div class="channel-option">
+                                <input type="radio" id="channel_tiktok" name="channel" value="tiktok" required>
+                                <label for="channel_tiktok" class="channel-label">
+                                    <div class="channel-title" data-translate="experience.channel_tiktok">틱톡</div>
+                                    <div class="channel-description" data-translate="experience.channel_tiktok_desc">30초 이상의 영상(틱톡) 1개 업로드</div>
+                                </label>
+                            </div>
+                            
+                            <div class="channel-option">
+                                <input type="radio" id="channel_xiaohongshu" name="channel" value="xiaohongshu" required>
+                                <label for="channel_xiaohongshu" class="channel-label">
+                                    <div class="channel-title" data-translate="experience.channel_xiaohongshu">샤오홍슈</div>
+                                    <div class="channel-description" data-translate="experience.channel_xiaohongshu_desc">사진 3장 이상의 피드 게시물 1개 업로드</div>
+                                </label>
+                            </div>
+                            
+                            <div class="channel-option">
+                                <input type="radio" id="channel_twitter" name="channel" value="twitter" required>
+                                <label for="channel_twitter" class="channel-label">
+                                    <div class="channel-title" data-translate="experience.channel_twitter">X(트위터)</div>
+                                    <div class="channel-description" data-translate="experience.channel_twitter_desc">X(트위터) 사진 3장 이상의 피드 게시물 1개 업로드</div>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 5. 체험 가능 요일 및 시간 -->
+                <div class="form-section">
+                    <div class="section-header">
+                        <span class="section-number">5</span>
+                        <h2 data-translate="experience.schedule">체험 가능 요일 및 시간</h2>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label data-translate="experience.available_days">체험 가능 요일</label>
+                        <div class="day-selection">
+                            <div class="day-option">
+                                <input type="checkbox" id="day_monday" name="available_days" value="monday">
+                                <label for="day_monday" data-translate="experience.day_monday">월</label>
+                            </div>
+                            <div class="day-option">
+                                <input type="checkbox" id="day_tuesday" name="available_days" value="tuesday">
+                                <label for="day_tuesday" data-translate="experience.day_tuesday">화</label>
+                            </div>
+                            <div class="day-option">
+                                <input type="checkbox" id="day_wednesday" name="available_days" value="wednesday">
+                                <label for="day_wednesday" data-translate="experience.day_wednesday">수</label>
+                            </div>
+                            <div class="day-option">
+                                <input type="checkbox" id="day_thursday" name="available_days" value="thursday">
+                                <label for="day_thursday" data-translate="experience.day_thursday">목</label>
+                            </div>
+                            <div class="day-option">
+                                <input type="checkbox" id="day_friday" name="available_days" value="friday">
+                                <label for="day_friday" data-translate="experience.day_friday">금</label>
+                            </div>
+                            <div class="day-option">
+                                <input type="checkbox" id="day_saturday" name="available_days" value="saturday">
+                                <label for="day_saturday" data-translate="experience.day_saturday">토</label>
+                            </div>
+                            <div class="day-option">
+                                <input type="checkbox" id="day_sunday" name="available_days" value="sunday">
+                                <label for="day_sunday" data-translate="experience.day_sunday">일</label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label data-translate="experience.available_time">체험 가능 시간</label>
+                        <div class="time-selection">
+                            <div class="time-input-group">
+                                <select id="start_hour" name="start_hour" class="time-select">
+                                    <option value="" data-translate="experience.time_select">선택</option>
+                                </select>
+                                <span class="time-separator">:</span>
+                                <select id="start_minute" name="start_minute" class="time-select">
+                                    <option value="" data-translate="experience.time_select">선택</option>
+                                </select>
+                                <span class="time-text" data-translate="experience.time_from">부터</span>
+                            </div>
+                            
+                            <div class="time-input-group">
+                                <select id="end_hour" name="end_hour" class="time-select">
+                                    <option value="" data-translate="experience.time_select">선택</option>
+                                </select>
+                                <span class="time-separator">:</span>
+                                <select id="end_minute" name="end_minute" class="time-select">
+                                    <option value="" data-translate="experience.time_select">선택</option>
+                                </select>
+                                <span class="time-text" data-translate="experience.time_to">까지</span>
+                            </div>
+                            
+                            <div class="time-option">
+                                <input type="checkbox" id="twenty_four_hours" name="twenty_four_hours" value="true">
+                                <label for="twenty_four_hours" data-translate="experience.twenty_four_hours">24시간 영업</label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label data-translate="experience.same_day_booking">당일 예약 및 방문</label>
+                        <div class="radio-group">
+                            <div class="radio-option">
+                                <input type="radio" id="same_day_yes" name="same_day_booking" value="yes">
+                                <label for="same_day_yes" data-translate="experience.possible">가능</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" id="same_day_no" name="same_day_booking" value="no">
+                                <label for="same_day_no" data-translate="experience.impossible">불가능</label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="reservation_notes" data-translate="experience.reservation_notes">예약 시 주의사항 (선택)</label>
+                        <textarea id="reservation_notes" name="reservation_notes" 
+                                  placeholder="브레이크 타임 또는 예약 시 주의사항을 입력해 주세요" data-translate="experience.reservation_notes_placeholder" 
+                                  rows="3" maxlength="50"></textarea>
+                        <div class="char-count">
+                            <span id="notes_char_count">0</span>/50
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 6. 체험단 상세 정보 -->
+                <div class="form-section">
+                    <div class="section-header">
+                        <span class="section-number">6</span>
+                        <h2 data-translate="experience.details">체험단 상세 정보</h2>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="experienceTitle" data-translate="experience.experience_title">체험단 제목 <span class="char-limit">(최대 20자)</span></label>
+                        <input type="text" id="experienceTitle" name="experienceTitle" 
+                               placeholder="체험단 제목을 입력해주세요" data-translate="experience.experience_title_placeholder" 
+                               maxlength="20" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="experienceDescription" data-translate="experience.description">체험단 설명 <span class="char-limit">(자세한 설명을 입력해주세요)</span></label>
+                        <textarea id="experienceDescription" name="experienceDescription" 
+                                  placeholder="체험단에 대한 자세한 설명을 입력해주세요" data-translate="experience.description_placeholder" rows="5" required></textarea>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="experienceType" data-translate="experience.type">체험 유형</label>
+                            <div class="custom-select" id="experienceTypeSelect">
+                                <div class="select-trigger" id="experienceTypeTrigger">
+                                    <span class="select-placeholder" data-translate="experience.type_select">체험 유형을 선택해주세요</span>
+                                    <i class="fas fa-chevron-up select-arrow"></i>
+                                </div>
+                                <div class="select-options" id="experienceTypeOptions">
+                                    <div class="select-option" data-value="visit" data-translate="experience.type_visit">방문형</div>
+                                    <div class="select-option" data-value="delivery" data-translate="experience.type_delivery">배송형</div>
+                                    <div class="select-option" data-value="pickup" data-translate="experience.type_pickup">포장형</div>
+                                    <div class="select-option" data-value="online" data-translate="experience.type_online">온라인</div>
+                                </div>
+                            </div>
+                            <input type="hidden" id="experienceType" name="experienceType" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="participantCount" data-translate="experience.participant_count">모집 인원</label>
+                            <input type="number" id="participantCount" name="participantCount" 
+                                   placeholder="10" min="1" max="1000" required>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="startDate" data-translate="experience.start_date">모집 시작일</label>
+                            <input type="date" id="startDate" name="startDate" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="endDate" data-translate="experience.end_date">모집 마감일</label>
+                            <input type="date" id="endDate" name="endDate" required>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="service_details" data-translate="experience.service_details_title">제공 내역</label>
+                        <p class="form-instruction" data-translate="experience.service_details_instruction">
+                            인플루언서에게 제공할 서비스를 입력해주세요
+                        </p>
+                        <textarea id="service_details" name="service_details" 
+                                  placeholder="제공할 서비스나 상품에 대해 상세히 입력해주세요" data-translate="experience.service_details_placeholder" 
+                                  rows="5" required></textarea>
+                        <div class="service-warning">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            <span data-translate="experience.service_warning">가격과 품목을 명확히 표기하지 않으면 반려되니 주의하세요</span>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label data-translate="experience.promotion_keywords">홍보할 검색 키워드</label>
+                        <p class="keyword-instruction" data-translate="experience.keyword_instruction">키워드는 명확하게 3가지를 선택해서 작성해 주세요.</p>
+                        
+                        <div class="keyword-inputs">
+                            <div class="keyword-group">
+                                <label for="keyword1" data-translate="experience.keyword_1">키워드 1*</label>
+                                <input type="text" id="keyword1" name="keyword1" 
+                                       placeholder="예) 강남역 삼겹살살(10자 이내)" data-translate="experience.keyword_1_placeholder" 
+                                       maxlength="10" required>
+                            </div>
+                            
+                            <div class="keyword-group">
+                                <label for="keyword2" data-translate="experience.keyword_2">키워드 2</label>
+                                <input type="text" id="keyword2" name="keyword2" 
+                                       placeholder="예) f1 스포츠펍(10자 이내)" data-translate="experience.keyword_2_placeholder" 
+                                       maxlength="10">
+                            </div>
+                            
+                            <div class="keyword-group">
+                                <label for="keyword3" data-translate="experience.keyword_3">키워드 3</label>
+                                <input type="text" id="keyword3" name="keyword3" 
+                                       placeholder="예) 이태원 타코(10자 이내)" data-translate="experience.keyword_3_placeholder" 
+                                       maxlength="10">
+                            </div>
+                        </div>
+                        
+                        <div class="keyword-notes">
+                            <p class="keyword-note" data-translate="experience.keyword_note_1">*띄어쓰기까지 반영되므로 명확하게 작성해 주세요</p>
+                            <p class="keyword-note" data-translate="experience.keyword_note_2">*해당 키워드는 리뷰 순위를 체크하는데 활용됩니다</p>
+                        </div>
+                    </div>
+                </div>
+
+
+
+                <!-- 7. 추가 정보 -->
+                <div class="form-section">
+                    <div class="section-header">
+                        <span class="section-number">7</span>
+                        <h2 data-translate="experience.additional_info">추가 정보</h2>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="location" data-translate="experience.location">위치 (방문형인 경우)</label>
+                        <input type="text" id="location" name="location" 
+                               placeholder="주소를 입력해주세요" data-translate="experience.location_placeholder">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="naver_map_url" data-translate="experience.naver_map_url">네이버 지도 URL</label>
+                        <input type="url" id="naver_map_url" name="naver_map_url" 
+                               placeholder="https://naver.me/..." data-translate="experience.naver_map_placeholder">
+                        <p class="form-instruction" data-translate="experience.naver_map_instruction">
+                            네이버 지도에서 '공유' 버튼을 클릭하여 링크를 복사해주세요
+                        </p>
+                    </div>
+                    </div>
+                </div>
+
+                <!-- 제출 버튼 -->
+                <div class="form-actions">
+                    <button type="button" class="btn-secondary" data-translate="experience.cancel">취소</button>
+                    <button type="submit" class="btn-primary" data-translate="experience.next">다음으로</button>
+                </div>
+            </form>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-left">
+                    <ul class="footer-links">
+                        <li><a href="#" data-translate="footer.company">회사소개</a></li>
+                        <li><a href="#" data-translate="footer.terms">이용약관</a></li>
+                        <li><a href="#" data-translate="footer.privacy">개인정보처리방침</a></li>
+                        <li><a href="#" data-translate="footer.support">고객센터</a></li>
+                        <li><a href="#" data-translate="footer.partnership">제휴문의</a></li>
+                        <li><a href="#" data-translate="footer.notice">공지사항</a></li>
+                        <li><a href="#" data-translate="footer.careers">채용정보</a></li>
+                    </ul>
+                </div>
+                
+                <div class="footer-center">
+                    <div class="social-icons">
+                        <i class="fab fa-kaggle"></i>
+                        <i class="fas fa-blog"></i>
+                        <i class="fab fa-instagram"></i>
+                        <i class="fab fa-youtube"></i>
+                    </div>
+                    <p class="unsubscribe" data-translate="brand.name">내손안에 슈퍼바이저</p>
+                    <div class="company-info">
+                        <p data-translate="footer.address">회사주소: 서울 강남구 영동대로 602</p>
+                        <p data-translate="footer.email">이메일: nbbranding@naver.com</p>
+                        <p data-translate="footer.business_number">사업자등록번호: 298-06-03540</p>
+                    </div>
+                </div>
+                
+                <div class="footer-right">
+                    <h3 data-translate="footer.customer_service">고객센터 10:00 ~ 18:00</h3>
+                    <p class="phone">0504-2525-1228</p>
+                </div>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>

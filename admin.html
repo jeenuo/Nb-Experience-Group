@@ -1,0 +1,1118 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>관리자 센터 - 사진쏙 체험단</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="admin-styles.css">
+</head>
+<body>
+    <!-- 관리자 헤더 -->
+    <header class="admin-header">
+        <div class="admin-header-content">
+            <div class="admin-logo">
+                <i class="fas fa-crown"></i>
+                <h1>관리자 센터</h1>
+            </div>
+            <div class="admin-user">
+                <span>관리자</span>
+                <button class="logout-btn" onclick="logout()">
+                    <i class="fas fa-sign-out-alt"></i>
+                    로그아웃
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- 관리자 네비게이션 -->
+    <nav class="admin-nav">
+        <div class="nav-container">
+            <button class="nav-item" onclick="switchTab('dashboard')" id="dashboardTab">
+                <i class="fas fa-tachometer-alt"></i>
+                대시보드
+            </button>
+            <button class="nav-item active" onclick="switchTab('approval')" id="approvalTab">
+                <i class="fas fa-check-circle"></i>
+                체험단 승인
+            </button>
+            <button class="nav-item" onclick="switchTab('experiences')" id="experiencesTab">
+                <i class="fas fa-list"></i>
+                체험단 관리
+            </button>
+            <button class="nav-item" onclick="switchTab('add')" id="addTab">
+                <i class="fas fa-plus"></i>
+                체험단 추가
+            </button>
+            <button class="nav-item" onclick="switchTab('edit')" id="editTab">
+                <i class="fas fa-edit"></i>
+                체험단 수정
+            </button>
+            <button class="nav-item" onclick="switchTab('reviews')" id="reviewsTab">
+                <i class="fas fa-star"></i>
+                이달의 리뷰
+            </button>
+            <button class="nav-item" onclick="switchTab('banners')" id="bannersTab">
+                <i class="fas fa-ad"></i>
+                배너 광고
+            </button>
+            <button class="nav-item" onclick="switchTab('hotplace')" id="hotplaceTab">
+                <i class="fas fa-utensils"></i>
+                핫플 맛집
+            </button>
+        </div>
+    </nav>
+
+    <!-- 메인 콘텐츠 -->
+    <main class="admin-main">
+        <div class="admin-container">
+            <!-- 대시보드 탭 -->
+            <div class="tab-content" id="dashboardContent">
+                <div class="dashboard-header">
+                    <h2>대시보드</h2>
+                    <p>사진쏙 체험단 관리 시스템</p>
+                </div>
+                
+                <div class="dashboard-stats">
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-list"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3 id="totalExperiencesCount">0</h3>
+                            <p>등록된 체험단</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-star"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3 id="totalReviewsCount">0</h3>
+                            <p>이달의 리뷰</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-check-circle"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3 id="totalApprovalCount">0</h3>
+                            <p>체험단 승인</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-ad"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3 id="totalBannersCount">0</h3>
+                            <p>배너 광고</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-utensils"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3 id="totalHotplaceCount">0</h3>
+                            <p>핫플 맛집</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 체험단 승인 현황 카드 -->
+                <div class="dashboard-section">
+                    <h3>체험단 승인 현황</h3>
+                    <div class="approval-cards">
+                        <div class="approval-card pending">
+                            <div class="approval-card-header">
+                                <div class="approval-icon">
+                                    <i class="fas fa-clock"></i>
+                                </div>
+                                <div class="approval-info">
+                                    <h4>승인 대기</h4>
+                                    <span class="approval-count" id="dashboardPendingCount">0</span>
+                                </div>
+                            </div>
+                            <div class="approval-card-footer">
+                                <button class="btn-view" onclick="switchTab('approval'); switchApprovalTab('pending')">확인하기</button>
+                            </div>
+                        </div>
+                        
+                        <div class="approval-card approved">
+                            <div class="approval-card-header">
+                                <div class="approval-icon">
+                                    <i class="fas fa-check-circle"></i>
+                                </div>
+                                <div class="approval-info">
+                                    <h4>승인 완료</h4>
+                                    <span class="approval-count" id="dashboardApprovedCount">0</span>
+                                </div>
+                            </div>
+                            <div class="approval-card-footer">
+                                <button class="btn-view" onclick="switchTab('approval'); switchApprovalTab('approved')">확인하기</button>
+                            </div>
+                        </div>
+                        
+                        <div class="approval-card rejected">
+                            <div class="approval-card-header">
+                                <div class="approval-icon">
+                                    <i class="fas fa-times-circle"></i>
+                                </div>
+                                <div class="approval-info">
+                                    <h4>승인 거절</h4>
+                                    <span class="approval-count" id="dashboardRejectedCount">0</span>
+                                </div>
+                            </div>
+                            <div class="approval-card-footer">
+                                <button class="btn-view" onclick="switchTab('approval'); switchApprovalTab('rejected')">확인하기</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="dashboard-actions">
+                    <div class="action-card">
+                        <h3>빠른 작업</h3>
+                        <div class="action-buttons">
+                            <button class="action-btn" onclick="switchTab('experiences')">
+                                <i class="fas fa-plus"></i>
+                                새 체험단 등록
+                            </button>
+                            <button class="action-btn" onclick="switchTab('banners')">
+                                <i class="fas fa-ad"></i>
+                                배너 추가
+                            </button>
+                            <button class="action-btn" onclick="switchTab('reviews')">
+                                <i class="fas fa-star"></i>
+                                리뷰 관리
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 체험단 승인 탭 -->
+            <div class="tab-content active" id="approvalContent">
+                <div class="content-header">
+                    <h2>체험단 승인</h2>
+                    <div class="approval-stats">
+                        <div class="stat-item">
+                            <span class="stat-number" id="pendingCount">0</span>
+                            <span class="stat-label">승인 대기</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-number" id="approvedCount">0</span>
+                            <span class="stat-label">승인 완료</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-number" id="rejectedCount">0</span>
+                            <span class="stat-label">승인 거절</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="approval-tabs">
+                    <button class="approval-tab active" onclick="switchApprovalTab('pending')" id="pendingTab">
+                        승인 대기
+                    </button>
+                    <button class="approval-tab" onclick="switchApprovalTab('approved')" id="approvedTab">
+                        승인 완료
+                    </button>
+                    <button class="approval-tab" onclick="switchApprovalTab('rejected')" id="rejectedTab">
+                        승인 거절
+                    </button>
+                </div>
+                
+                <div class="approval-content">
+                    <div class="approval-section active" id="pendingSection">
+                        <div class="content-list" id="pendingList">
+                            <!-- 승인 대기 체험단 목록이 여기에 표시됩니다 -->
+                        </div>
+                    </div>
+                    <div class="approval-section" id="approvedSection">
+                        <div class="content-list" id="approvedList">
+                            <!-- 승인 완료 체험단 목록이 여기에 표시됩니다 -->
+                        </div>
+                    </div>
+                    <div class="approval-section" id="rejectedSection">
+                        <div class="content-list" id="rejectedList">
+                            <!-- 승인 거절 체험단 목록이 여기에 표시됩니다 -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 체험단 관리 탭 -->
+            <div class="tab-content" id="experiencesContent">
+                <div class="content-header">
+                    <h2>체험단 관리</h2>
+                    <button class="btn-primary" onclick="goToRegistration()">
+                        <i class="fas fa-plus"></i>
+                        새 체험단 등록
+                    </button>
+                </div>
+                
+                <div class="content-stats">
+                    <div class="stat-item clickable" onclick="showExperiencesByStatus('active')">
+                        <span class="stat-number" id="totalExperiences">0</span>
+                        <span class="stat-label">등록된 체험단</span>
+                    </div>
+                    <div class="stat-item clickable" onclick="showExperiencesByStatus('ended')">
+                        <span class="stat-number" id="endedExperiences">0</span>
+                        <span class="stat-label">종료된 체험단</span>
+                    </div>
+                    <div class="stat-item clickable" onclick="showExperiencesByStatus('cancelled')">
+                        <span class="stat-number" id="cancelledExperiences">0</span>
+                        <span class="stat-label">취소된 체험단</span>
+                    </div>
+                </div>
+                
+                <div class="content-list" id="experiencesList">
+                    <!-- 체험단 목록이 여기에 표시됩니다 -->
+                </div>
+            </div>
+
+            <!-- 체험단 추가 탭 -->
+            <div class="tab-content" id="addContent">
+                <div class="content-header">
+                    <h2>체험단 추가</h2>
+                </div>
+                
+                <div class="add-container">
+                    <form id="addExperienceForm" class="admin-form">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="addTitle">체험단 제목 *</label>
+                                <input type="text" id="addTitle" name="title" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="addCompanyName">회사명 *</label>
+                                <input type="text" id="addCompanyName" name="companyName" required>
+                            </div>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="addCategory">카테고리 *</label>
+                                <select id="addCategory" name="category" required>
+                                    <option value="">카테고리 선택</option>
+                                    <option value="restaurant">맛집</option>
+                                    <option value="food">식품</option>
+                                    <option value="beauty">뷰티</option>
+                                    <option value="travel">여행</option>
+                                    <option value="digital">디지털</option>
+                                    <option value="pets">반려동물</option>
+                                    <option value="other">기타</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="addType">체험 유형 *</label>
+                                <select id="addType" name="type" required>
+                                    <option value="">체험 유형 선택</option>
+                                    <option value="visit">방문형</option>
+                                    <option value="delivery">배송형</option>
+                                    <option value="pickup">포장형</option>
+                                    <option value="online">온라인</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="addChannel">채널 *</label>
+                                <select id="addChannel" name="channel" required>
+                                    <option value="">채널 선택</option>
+                                    <option value="blog">블로그</option>
+                                    <option value="blog_clip">블로그+클립</option>
+                                    <option value="reels">릴스</option>
+                                    <option value="shorts">쇼츠</option>
+                                    <option value="instagram">인스타그램</option>
+                                    <option value="clip">클립</option>
+                                    <option value="youtube">유튜브</option>
+                                    <option value="tiktok">틱톡</option>
+                                    <option value="xiaohongshu">샤오홍슈</option>
+                                    <option value="twitter">X(트위터)</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="addContactPhone">연락처 *</label>
+                                <input type="tel" id="addContactPhone" name="contactPhone" placeholder="010-1234-5678" required>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="addDescription">체험단 설명 *</label>
+                            <textarea id="addDescription" name="description" rows="4" required></textarea>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="addParticipantCount">모집 인원 *</label>
+                                <input type="number" id="addParticipantCount" name="participantCount" min="1" max="1000" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="addRegion">지역 *</label>
+                                <select id="addRegion" name="region" required>
+                                    <option value="">지역 선택</option>
+                                    <option value="서울">서울</option>
+                                    <option value="경기">경기</option>
+                                    <option value="인천">인천</option>
+                                    <option value="부산">부산</option>
+                                    <option value="대구">대구</option>
+                                    <option value="광주">광주</option>
+                                    <option value="대전">대전</option>
+                                    <option value="울산">울산</option>
+                                    <option value="세종">세종</option>
+                                    <option value="강원">강원</option>
+                                    <option value="충북">충북</option>
+                                    <option value="충남">충남</option>
+                                    <option value="전북">전북</option>
+                                    <option value="전남">전남</option>
+                                    <option value="경북">경북</option>
+                                    <option value="경남">경남</option>
+                                    <option value="제주">제주</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="addAddress">상세 주소 *</label>
+                            <input type="text" id="addAddress" name="address" placeholder="서울시 강남구 테헤란로 123" required>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="addStartDate">모집 시작일 *</label>
+                                <input type="date" id="addStartDate" name="startDate" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="addEndDate">모집 마감일 *</label>
+                                <input type="date" id="addEndDate" name="endDate" required>
+                            </div>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="addExperienceStartDate">체험 시작일 *</label>
+                                <input type="date" id="addExperienceStartDate" name="experienceStartDate" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="addExperienceEndDate">체험 마감일 *</label>
+                                <input type="date" id="addExperienceEndDate" name="experienceEndDate" required>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="addThumbnail">체험단 썸네일 이미지</label>
+                            <input type="file" id="addThumbnail" name="thumbnail" accept="image/*">
+                            <div id="addThumbnailPreview" class="thumbnail-preview"></div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="addProvidedServices">제공 서비스 *</label>
+                            <textarea id="addProvidedServices" name="providedServices" rows="3" required></textarea>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="addKeywords">키워드 (쉼표로 구분)</label>
+                            <input type="text" id="addKeywords" name="keywords" placeholder="키워드1, 키워드2, 키워드3">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>체험 가능 요일 *</label>
+                            <div class="day-buttons">
+                                <button type="button" class="day-btn" data-day="월" onclick="toggleDay(this)">월</button>
+                                <button type="button" class="day-btn" data-day="화" onclick="toggleDay(this)">화</button>
+                                <button type="button" class="day-btn" data-day="수" onclick="toggleDay(this)">수</button>
+                                <button type="button" class="day-btn" data-day="목" onclick="toggleDay(this)">목</button>
+                                <button type="button" class="day-btn" data-day="금" onclick="toggleDay(this)">금</button>
+                                <button type="button" class="day-btn" data-day="토" onclick="toggleDay(this)">토</button>
+                                <button type="button" class="day-btn" data-day="일" onclick="toggleDay(this)">일</button>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>체험 가능 시간 *</label>
+                            <div class="time-selection">
+                                <div class="time-input-group">
+                                    <select id="addStartHour" name="startHour" onchange="updateTimeDisplay()">
+                                        <option value="">시간</option>
+                                    </select>
+                                    <span>:</span>
+                                    <select id="addStartMinute" name="startMinute" onchange="updateTimeDisplay()">
+                                        <option value="">분</option>
+                                    </select>
+                                    <span>부터</span>
+                                </div>
+                                <div class="time-input-group">
+                                    <select id="addEndHour" name="endHour" onchange="updateTimeDisplay()">
+                                        <option value="">시간</option>
+                                    </select>
+                                    <span>:</span>
+                                    <select id="addEndMinute" name="endMinute" onchange="updateTimeDisplay()">
+                                        <option value="">분</option>
+                                    </select>
+                                    <span>까지</span>
+                                </div>
+                                <div class="checkbox-group">
+                                    <label class="checkbox-item">
+                                        <input type="checkbox" id="addIs24Hours" name="is24Hours" onchange="toggle24Hours()"> 24시간 영업
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>당일 예약 및 방문</label>
+                            <div class="radio-group">
+                                <label class="radio-item">
+                                    <input type="radio" name="addSameDayReservation" value="possible" checked> 가능
+                                </label>
+                                <label class="radio-item">
+                                    <input type="radio" name="addSameDayReservation" value="impossible"> 불가능
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="addReservationNotes">예약 시 주의사항</label>
+                            <textarea id="addReservationNotes" name="reservationNotes" rows="3" placeholder="예약 시 주의사항을 입력하세요"></textarea>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="addUrl">관련 URL</label>
+                            <input type="url" id="addUrl" name="url" placeholder="https://example.com">
+                        </div>
+                        
+                        <div class="form-actions">
+                            <button type="button" class="btn-secondary" onclick="clearAddForm()">초기화</button>
+                            <button type="submit" class="btn-primary">체험단 추가</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- 체험단 수정 탭 -->
+            <div class="tab-content" id="editContent">
+                <div class="content-header">
+                    <h2>체험단 수정</h2>
+                </div>
+                
+                <div class="edit-container">
+                    <div class="form-group">
+                        <label for="editExperienceSelect">수정할 체험단 선택</label>
+                        <select id="editExperienceSelect" onchange="loadExperienceForEdit(this.value)">
+                            <option value="">체험단을 선택하세요</option>
+                        </select>
+                    </div>
+                    
+                    <div class="edit-form" id="editForm" style="display: none;">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="editTitle">체험단 제목</label>
+                                <input type="text" id="editTitle" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="editCompanyName">회사명</label>
+                                <input type="text" id="editCompanyName" required>
+                            </div>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="editCategory">카테고리</label>
+                                <select id="editCategory" required>
+                                    <option value="">카테고리 선택</option>
+                                    <option value="맛집">맛집</option>
+                                    <option value="식품">식품</option>
+                                    <option value="뷰티">뷰티</option>
+                                    <option value="여행">여행</option>
+                                    <option value="디지털">디지털</option>
+                                    <option value="반려동물">반려동물</option>
+                                    <option value="기타">기타</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="editParticipantCount">모집 인원</label>
+                                <input type="number" id="editParticipantCount" min="1" required>
+                            </div>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="editStartDate">모집 시작일</label>
+                                <input type="date" id="editStartDate" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="editEndDate">모집 마감일</label>
+                                <input type="date" id="editEndDate" required>
+                            </div>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="editRegion">지역</label>
+                                <select id="editRegion" required>
+                                    <option value="">지역 선택</option>
+                                    <option value="서울">서울</option>
+                                    <option value="경기">경기</option>
+                                    <option value="인천">인천</option>
+                                    <option value="부산">부산</option>
+                                    <option value="대구">대구</option>
+                                    <option value="광주">광주</option>
+                                    <option value="대전">대전</option>
+                                    <option value="울산">울산</option>
+                                    <option value="세종">세종</option>
+                                    <option value="강원">강원</option>
+                                    <option value="충북">충북</option>
+                                    <option value="충남">충남</option>
+                                    <option value="전북">전북</option>
+                                    <option value="전남">전남</option>
+                                    <option value="경북">경북</option>
+                                    <option value="경남">경남</option>
+                                    <option value="제주">제주</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>채널</label>
+                                <div class="channel-selection">
+                                    <div class="channel-grid">
+                                        <div class="channel-option">
+                                            <input type="radio" id="editChannel_blog" name="editChannel" value="blog">
+                                            <label for="editChannel_blog" class="channel-label">
+                                                <div class="channel-title">블로그</div>
+                                                <div class="channel-description">블로그 게시물 1건 업로드</div>
+                                            </label>
+                                        </div>
+                                        
+                                        <div class="channel-option">
+                                            <input type="radio" id="editChannel_blog_clip" name="editChannel" value="blog_clip">
+                                            <label for="editChannel_blog_clip" class="channel-label">
+                                                <div class="channel-title">블로그+클립</div>
+                                                <div class="channel-description">1회 체험으로 블로그 게시물 1건+15초 영상(클립) 1개</div>
+                                            </label>
+                                        </div>
+                                        
+                                        <div class="channel-option">
+                                            <input type="radio" id="editChannel_reels" name="editChannel" value="reels">
+                                            <label for="editChannel_reels" class="channel-label">
+                                                <div class="channel-title">릴스</div>
+                                                <div class="channel-description">30초 이상의 영상(인스타그램 릴스) 1개 업로드</div>
+                                            </label>
+                                        </div>
+                                        
+                                        <div class="channel-option">
+                                            <input type="radio" id="editChannel_shorts" name="editChannel" value="shorts">
+                                            <label for="editChannel_shorts" class="channel-label">
+                                                <div class="channel-title">쇼츠</div>
+                                                <div class="channel-description">30초 이상의 영상(유튜브 쇼츠) 1개 업로드</div>
+                                            </label>
+                                        </div>
+                                        
+                                        <div class="channel-option">
+                                            <input type="radio" id="editChannel_instagram" name="editChannel" value="instagram">
+                                            <label for="editChannel_instagram" class="channel-label">
+                                                <div class="channel-title">인스타그램</div>
+                                                <div class="channel-description">사진 3장 이상의 피드 게시물 1개 업로드</div>
+                                            </label>
+                                        </div>
+                                        
+                                        <div class="channel-option">
+                                            <input type="radio" id="editChannel_clip" name="editChannel" value="clip">
+                                            <label for="editChannel_clip" class="channel-label">
+                                                <div class="channel-title">블로그 클립</div>
+                                                <div class="channel-description">30초 영상(클립) 1개 업로드</div>
+                                            </label>
+                                        </div>
+                                        
+                                        <div class="channel-option">
+                                            <input type="radio" id="editChannel_youtube" name="editChannel" value="youtube">
+                                            <label for="editChannel_youtube" class="channel-label">
+                                                <div class="channel-title">유튜브</div>
+                                                <div class="channel-description">3분 이상의 영상(유튜브) 1개 업로드</div>
+                                            </label>
+                                        </div>
+                                        
+                                        <div class="channel-option">
+                                            <input type="radio" id="editChannel_tiktok" name="editChannel" value="tiktok">
+                                            <label for="editChannel_tiktok" class="channel-label">
+                                                <div class="channel-title">틱톡</div>
+                                                <div class="channel-description">30초 이상의 영상(틱톡) 1개 업로드</div>
+                                            </label>
+                                        </div>
+                                        
+                                        <div class="channel-option">
+                                            <input type="radio" id="editChannel_xiaohongshu" name="editChannel" value="xiaohongshu">
+                                            <label for="editChannel_xiaohongshu" class="channel-label">
+                                                <div class="channel-title">샤오홍슈</div>
+                                                <div class="channel-description">사진 3장 이상의 피드 게시물 1개 업로드</div>
+                                            </label>
+                                        </div>
+                                        
+                                        <div class="channel-option">
+                                            <input type="radio" id="editChannel_twitter" name="editChannel" value="twitter">
+                                            <label for="editChannel_twitter" class="channel-label">
+                                                <div class="channel-title">X(트위터)</div>
+                                                <div class="channel-description">X(트위터) 사진 3장 이상의 피드 게시물 1개 업로드</div>
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="editDescription">체험단 설명</label>
+                            <textarea id="editDescription" rows="4" required></textarea>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="editServiceDetails">제공 서비스</label>
+                            <textarea id="editServiceDetails" rows="3" required></textarea>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="editKeywords">키워드 (쉼표로 구분)</label>
+                            <input type="text" id="editKeywords" placeholder="예: 맛집, 체험, 무료">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="editUrl">웹사이트 URL</label>
+                            <input type="url" id="editUrl" placeholder="https://example.com">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="editLocation">위치</label>
+                            <input type="text" id="editLocation" placeholder="예: 서울시 강남구">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="editThumbnail">썸네일 이미지</label>
+                            <div class="file-upload-area" id="editThumbnailUploadArea">
+                                <div class="upload-content">
+                                    <i class="fas fa-cloud-upload-alt"></i>
+                                    <p>이미지를 드래그하거나 클릭하여 업로드하세요</p>
+                                    <p class="upload-hint">JPG, PNG, GIF 파일만 가능 (최대 10MB)</p>
+                                </div>
+                                <input type="file" id="editThumbnail" accept="image/*" style="display: none;">
+                            </div>
+                            <div class="uploaded-files" id="editThumbnailPreview"></div>
+                        </div>
+                        
+                        <div class="form-actions">
+                            <button class="btn-secondary" onclick="cancelEdit()">취소</button>
+                            <button class="btn-primary" onclick="saveExperienceEdit()">수정 저장</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 이달의 리뷰 탭 -->
+            <div class="tab-content" id="reviewsContent">
+                <div class="content-header">
+                    <h2>이달의 리뷰 관리</h2>
+                    <button class="btn-primary" onclick="addReview()">
+                        <i class="fas fa-plus"></i>
+                        리뷰 추가
+                    </button>
+                </div>
+                
+                <div class="content-stats">
+                    <div class="stat-item">
+                        <span class="stat-number" id="totalReviews">0</span>
+                        <span class="stat-label">등록된 리뷰</span>
+                    </div>
+                </div>
+                
+                <div class="content-list" id="reviewsList">
+                    <!-- 리뷰 목록이 여기에 표시됩니다 -->
+                </div>
+            </div>
+
+            <!-- 배너 광고 탭 -->
+            <div class="tab-content" id="bannersContent">
+                <div class="content-header">
+                    <h2>배너 광고 관리</h2>
+                    <button class="btn-primary" onclick="openAddBannerModal()">
+                        <i class="fas fa-plus"></i>
+                        배너 추가
+                    </button>
+                </div>
+                
+                <div class="content-stats">
+                    <div class="stat-item">
+                        <span class="stat-number" id="totalBanners">0</span>
+                        <span class="stat-label">등록된 배너</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-number" id="activeBanners">0</span>
+                        <span class="stat-label">활성 배너</span>
+                    </div>
+                </div>
+                
+                <div class="content-list" id="bannersList">
+                    <!-- 배너 목록이 여기에 표시됩니다 -->
+                </div>
+            </div>
+
+            <!-- 핫플 맛집 탭 -->
+            <div class="tab-content" id="hotplaceContent">
+                <div class="content-header">
+                    <h2>핫플 맛집 관리</h2>
+                    <button class="btn-primary" onclick="addHotplace()">
+                        <i class="fas fa-plus"></i>
+                        맛집 추가
+                    </button>
+                </div>
+                
+                <div class="content-stats">
+                    <div class="stat-item">
+                        <span class="stat-number" id="totalHotplace">0</span>
+                        <span class="stat-label">등록된 맛집</span>
+                    </div>
+                </div>
+                
+                <div class="content-list" id="hotplaceList">
+                    <!-- 맛집 목록이 여기에 표시됩니다 -->
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- 리뷰 추가/편집 모달 -->
+    <div class="modal" id="reviewModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="reviewModalTitle">리뷰 추가</h3>
+                <span class="close" onclick="closeReviewModal()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <form id="reviewForm">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="reviewTitle">리뷰 제목</label>
+                            <input type="text" id="reviewTitle" name="title" required placeholder="리뷰 제목을 입력하세요">
+                        </div>
+                        <div class="form-group">
+                            <label for="reviewAuthor">작성자</label>
+                            <input type="text" id="reviewAuthor" name="author" required placeholder="작성자명을 입력하세요">
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="reviewRating">평점</label>
+                            <select id="reviewRating" name="rating" required>
+                                <option value="">평점 선택</option>
+                                <option value="5">5점 (매우 만족)</option>
+                                <option value="4">4점 (만족)</option>
+                                <option value="3">3점 (보통)</option>
+                                <option value="2">2점 (불만족)</option>
+                                <option value="1">1점 (매우 불만족)</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="reviewDate">작성일</label>
+                            <input type="date" id="reviewDate" name="date" required>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>채널</label>
+                        <div class="channel-selection">
+                            <div class="channel-grid">
+                                <div class="channel-option">
+                                    <input type="radio" id="reviewChannel_blog" name="reviewChannel" value="blog">
+                                    <label for="reviewChannel_blog" class="channel-label">
+                                        <div class="channel-title">블로그</div>
+                                        <div class="channel-description">블로그 리뷰</div>
+                                    </label>
+                                </div>
+                                
+                                <div class="channel-option">
+                                    <input type="radio" id="reviewChannel_instagram" name="reviewChannel" value="instagram">
+                                    <label for="reviewChannel_instagram" class="channel-label">
+                                        <div class="channel-title">인스타그램</div>
+                                        <div class="channel-description">인스타그램 리뷰</div>
+                                    </label>
+                                </div>
+                                
+                                <div class="channel-option">
+                                    <input type="radio" id="reviewChannel_youtube" name="reviewChannel" value="youtube">
+                                    <label for="reviewChannel_youtube" class="channel-label">
+                                        <div class="channel-title">유튜브</div>
+                                        <div class="channel-description">유튜브 리뷰</div>
+                                    </label>
+                                </div>
+                                
+                                <div class="channel-option">
+                                    <input type="radio" id="reviewChannel_tiktok" name="reviewChannel" value="tiktok">
+                                    <label for="reviewChannel_tiktok" class="channel-label">
+                                        <div class="channel-title">틱톡</div>
+                                        <div class="channel-description">틱톡 리뷰</div>
+                                    </label>
+                                </div>
+                                
+                                <div class="channel-option">
+                                    <input type="radio" id="reviewChannel_xiaohongshu" name="reviewChannel" value="xiaohongshu">
+                                    <label for="reviewChannel_xiaohongshu" class="channel-label">
+                                        <div class="channel-title">샤오홍슈</div>
+                                        <div class="channel-description">샤오홍슈 리뷰</div>
+                                    </label>
+                                </div>
+                                
+                                <div class="channel-option">
+                                    <input type="radio" id="reviewChannel_twitter" name="reviewChannel" value="twitter">
+                                    <label for="reviewChannel_twitter" class="channel-label">
+                                        <div class="channel-title">X(트위터)</div>
+                                        <div class="channel-description">X(트위터) 리뷰</div>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="reviewContent">리뷰 내용</label>
+                        <textarea id="reviewContent" name="content" rows="5" required placeholder="리뷰 내용을 입력하세요"></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="reviewImage">리뷰 이미지</label>
+                        <div class="file-upload-area" id="reviewImageUploadArea">
+                            <div class="upload-content">
+                                <i class="fas fa-cloud-upload-alt"></i>
+                                <p>이미지를 드래그하거나 클릭하여 업로드하세요</p>
+                                <p class="upload-hint">JPG, PNG, GIF 파일만 가능 (최대 10MB)</p>
+                            </div>
+                            <input type="file" id="reviewImage" name="image" accept="image/*" style="display: none;">
+                        </div>
+                        <div class="uploaded-files" id="reviewImagePreview"></div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="reviewExperience">관련 체험단</label>
+                        <select id="reviewExperience" name="experienceId">
+                            <option value="">체험단 선택 (선택사항)</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="reviewUrl">관련 URL</label>
+                        <input type="url" id="reviewUrl" name="url" placeholder="https://example.com">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" onclick="closeReviewModal()">취소</button>
+                <button class="btn-primary" onclick="saveReview()">저장</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 핫플 맛집 추가/편집 모달 -->
+    <div class="modal" id="hotplaceModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="hotplaceModalTitle">맛집 추가</h3>
+                <span class="close" onclick="closeHotplaceModal()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <form id="hotplaceForm">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="hotplaceName">맛집 이름</label>
+                            <input type="text" id="hotplaceName" name="name" required placeholder="맛집 이름을 입력하세요">
+                        </div>
+                        <div class="form-group">
+                            <label for="hotplaceCategory">카테고리</label>
+                            <select id="hotplaceCategory" name="category" required>
+                                <option value="">카테고리 선택</option>
+                                <option value="한식">한식</option>
+                                <option value="중식">중식</option>
+                                <option value="일식">일식</option>
+                                <option value="양식">양식</option>
+                                <option value="카페">카페</option>
+                                <option value="디저트">디저트</option>
+                                <option value="기타">기타</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="hotplaceLocation">위치</label>
+                            <input type="text" id="hotplaceLocation" name="location" required placeholder="예: 서울시 강남구">
+                        </div>
+                        <div class="form-group">
+                            <label for="hotplaceRating">평점</label>
+                            <select id="hotplaceRating" name="rating" required>
+                                <option value="">평점 선택</option>
+                                <option value="5">5점</option>
+                                <option value="4">4점</option>
+                                <option value="3">3점</option>
+                                <option value="2">2점</option>
+                                <option value="1">1점</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="hotplaceDescription">맛집 설명</label>
+                        <textarea id="hotplaceDescription" name="description" rows="4" required placeholder="맛집에 대한 설명을 입력하세요"></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="hotplaceImage">맛집 이미지</label>
+                        <div class="file-upload-area" id="hotplaceImageUploadArea">
+                            <div class="upload-content">
+                                <i class="fas fa-cloud-upload-alt"></i>
+                                <p>이미지를 드래그하거나 클릭하여 업로드하세요</p>
+                                <p class="upload-hint">JPG, PNG, GIF 파일만 가능 (최대 10MB)</p>
+                            </div>
+                            <input type="file" id="hotplaceImage" name="image" accept="image/*" style="display: none;">
+                        </div>
+                        <div class="uploaded-files" id="hotplaceImagePreview"></div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="hotplacePrice">가격대</label>
+                            <input type="text" id="hotplacePrice" name="price" placeholder="예: 1만원대">
+                        </div>
+                        <div class="form-group">
+                            <label for="hotplacePhone">전화번호</label>
+                            <input type="tel" id="hotplacePhone" name="phone" placeholder="예: 02-1234-5678">
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="hotplaceKeywords">키워드 (3개, 쉼표로 구분)</label>
+                        <input type="text" id="hotplaceKeywords" name="keywords" placeholder="예: 맛집, 한식, 가족식당" maxlength="100">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="hotplaceUrl">웹사이트 URL</label>
+                        <input type="url" id="hotplaceUrl" name="url" placeholder="https://example.com">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" onclick="closeHotplaceModal()">취소</button>
+                <button class="btn-primary" onclick="saveHotplace()">저장</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 배너 추가 모달 -->
+    <div class="modal" id="addBannerModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>배너 추가</h3>
+                <span class="close" onclick="closeAddBannerModal()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <form id="addBannerForm">
+                    <div class="form-group">
+                        <label for="bannerTitle">배너 제목</label>
+                        <input type="text" id="bannerTitle" name="title" required placeholder="배너 제목을 입력하세요">
+                    </div>
+                    <div class="form-group">
+                        <label for="bannerSubtitle">배너 부제목</label>
+                        <input type="text" id="bannerSubtitle" name="subtitle" required placeholder="배너 부제목을 입력하세요">
+                    </div>
+                    <div class="form-group">
+                        <label for="bannerColor">배너 색상</label>
+                        <select id="bannerColor" name="color" required>
+                            <option value="">색상을 선택하세요</option>
+                            <option value="pink">핑크</option>
+                            <option value="blue">블루</option>
+                            <option value="green">그린</option>
+                            <option value="purple">퍼플</option>
+                            <option value="orange">오렌지</option>
+                            <option value="red">레드</option>
+                            <option value="gray">그레이</option>
+                            <option value="teal">틸</option>
+                            <option value="indigo">인디고</option>
+                            <option value="cyan">시안</option>
+                            <option value="lime">라임</option>
+                            <option value="amber">앰버</option>
+                            <option value="deep-orange">딥 오렌지</option>
+                            <option value="brown">브라운</option>
+                            <option value="blue-grey">블루 그레이</option>
+                            <option value="pink-accent">핑크 액센트</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="bannerIcon">아이콘</label>
+                        <select id="bannerIcon" name="icon" required>
+                            <option value="">아이콘을 선택하세요</option>
+                            <option value="star">별</option>
+                            <option value="gift">선물상자</option>
+                            <option value="heart">하트</option>
+                            <option value="thumbs-up">좋아요</option>
+                            <option value="trophy">트로피</option>
+                            <option value="diamond">다이아몬드</option>
+                            <option value="crown">왕관</option>
+                            <option value="fire">불꽃</option>
+                            <option value="lightning">번개</option>
+                            <option value="rocket">로켓</option>
+                            <option value="gem">보석</option>
+                            <option value="medal">메달</option>
+                            <option value="target">타겟</option>
+                            <option value="shield">방패</option>
+                            <option value="magic">마법봉</option>
+                            <option value="sun">태양</option>
+                            <option value="moon">달</option>
+                            <option value="sparkles">반짝임</option>
+                            <option value="bolt">번개</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="bannerImage">배너 이미지</label>
+                        <div class="file-upload-area" id="bannerFileUploadArea">
+                            <div class="upload-content">
+                                <i class="fas fa-cloud-upload-alt"></i>
+                                <p>이미지를 드래그하거나 클릭하여 업로드하세요</p>
+                                <p class="upload-hint">JPG, PNG, GIF 파일만 가능 (최대 10MB)</p>
+                            </div>
+                            <input type="file" id="bannerImage" name="image" accept="image/*" style="display: none;">
+                        </div>
+                        <div class="uploaded-files" id="bannerUploadedFiles"></div>
+                    </div>
+                    <div class="form-group">
+                        <label for="bannerLink">링크 URL</label>
+                        <input type="url" id="bannerLink" name="link" placeholder="클릭 시 이동할 URL을 입력하세요 (선택사항)">
+                    </div>
+                    <div class="form-group">
+                        <label for="bannerOrder">표시 순서</label>
+                        <input type="number" id="bannerOrder" name="order" min="1" max="4" required placeholder="1-4 사이의 숫자">
+                    </div>
+                    <div class="form-group">
+                        <label for="bannerDisplayMode">표시 모드</label>
+                        <select id="bannerDisplayMode" name="displayMode" required>
+                            <option value="double">2개씩 표시 (기본)</option>
+                            <option value="single">단독 배너 (전체 너비)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="bannerActive" name="active" checked>
+                            <span class="checkmark"></span>
+                            활성 상태
+                        </label>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" onclick="closeAddBannerModal()">취소</button>
+                <button class="btn-primary" onclick="saveBanner()">저장</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="admin-script.js"></script>
+</body>
+</html>

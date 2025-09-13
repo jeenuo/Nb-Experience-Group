@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>이용가이드 - 내손안에 슈퍼바이저</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="guide-styles.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="script.js" defer></script>
+    <script src="guide-script.js" defer></script>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <div class="header-left">
+                <div class="logo">
+                    <i class="fas fa-hand-holding-heart"></i>
+                    <span>내바 마케팅</span>
+                </div>
+            </div>
+            
+            <div class="header-center">
+                <div class="search-bar" onclick="goToSearch()">
+                    <input type="text" placeholder="체험단 상품을 찾아보세요!" readonly>
+                    <i class="fas fa-search"></i>
+                </div>
+            </div>
+            
+            <div class="header-right">
+                <nav class="nav-links">
+                    <a href="index.html">메인</a>
+                    <a href="experience-registration.html">체험단 모집</a>
+                    <a href="hotplace.html">핫플 맛집</a>
+                    <a href="guide.html" class="active">이용가이드</a>
+                </nav>
+                <div class="language-selector">
+                    <div class="language-widget">
+                        <div class="language-icon">
+                            <i class="fas fa-globe"></i>
+                        </div>
+                        <button class="language-btn" id="languageBtn">
+                            <span id="currentLanguage">한국어</span>
+                            <i class="fas fa-chevron-down"></i>
+                        </button>
+                        <div class="language-dropdown" id="languageDropdown">
+                            <div class="language-option" data-lang="ko">
+                                <span class="flag">🇰🇷</span>
+                                <span>한국어</span>
+                            </div>
+                            <div class="language-option" data-lang="zh">
+                                <span class="flag">🇨🇳</span>
+                                <span>中文</span>
+                            </div>
+                            <div class="language-option" data-lang="en">
+                                <span class="flag">🇺🇸</span>
+                                <span>English</span>
+                            </div>
+                            <div class="language-option" data-lang="ja">
+                                <span class="flag">🇯🇵</span>
+                                <span>日本語</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="user-icons">
+                    <i class="fas fa-user"></i>
+                    <i class="fas fa-shopping-cart"></i>
+                    <i class="fas fa-bell"></i>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="guide-main">
+        <div class="container">
+            <!-- Help Section -->
+            <section class="help-section">
+                <h1 class="help-title">무엇을 도와드릴까요?</h1>
+                <div class="search-container">
+                    <div class="search-box">
+                        <input type="text" placeholder="체험단 연장, 취소, 리뷰, 포인트, 선정" id="faqSearch">
+                        <i class="fas fa-search"></i>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Featured Questions -->
+            <section class="featured-questions">
+                <div class="question-card">
+                    <div class="question-header">
+                        <span class="question-number">Q1</span>
+                        <h3>체험단 연장은 어떻게 하나요?</h3>
+                    </div>
+                    <div class="question-answer">
+                        <p>체험단 연장 신청은 체험단 상세 페이지에서 신청 가능합니다. 신청 상태를 확인하고 연장 신청을 진행해주세요. 단, 일부 체험단의 경우 연장이 불가능할 수 있습니다.</p>
+                    </div>
+                </div>
+
+                <div class="question-card">
+                    <div class="question-header">
+                        <span class="question-number">Q2</span>
+                        <h3>진행중인 체험단 취소는 어떻게 하나요?</h3>
+                    </div>
+                    <div class="question-answer">
+                        <p>진행중인 체험단 취소는 체험단 신청 후 1:1 문의를 통해 가능합니다. 취소 조건에 따라 처리되며, 자세한 내용은 이용약관을 참고해주세요.</p>
+                    </div>
+                </div>
+
+                <div class="question-card">
+                    <div class="question-header">
+                        <span class="question-number">Q3</span>
+                        <h3>리뷰 마감일이 지났는데 리뷰 작성을 안해요.</h3>
+                    </div>
+                    <div class="question-answer">
+                        <p>리뷰 마감일이 지난 경우, 지정된 기간 내에 리뷰를 제출하지 않으면 포인트 지급이 어려울 수 있습니다. 빠른 시일 내에 1:1 문의를 통해 문의해주세요.</p>
+                    </div>
+                </div>
+
+                <div class="question-card">
+                    <div class="question-header">
+                        <span class="question-number">Q4</span>
+                        <h3>포인트 환불 어떻게 하나요?</h3>
+                    </div>
+                    <div class="question-answer">
+                        <p>포인트 환불은 1:1 문의를 통해 신청 가능합니다. 보유 포인트 현황과 환불 금액을 확인하여 처리해드립니다.</p>
+                    </div>
+                </div>
+
+                <div class="question-card">
+                    <div class="question-header">
+                        <span class="question-number">Q5</span>
+                        <h3>바빠서 선정일을 놓쳤어요.</h3>
+                    </div>
+                    <div class="question-answer">
+                        <p>선정일을 놓친 경우 선정 진행이 어려울 수 있습니다. 공지사항을 참고하여 다음 기회를 이용해주세요.</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- FAQ Section -->
+            <section class="faq-section">
+                <div class="faq-header">
+                    <h2>자주 묻는 질문</h2>
+                    <p>가장 자주 묻는 질문이요.</p>
+                </div>
+
+                <div class="faq-list">
+                    <div class="faq-item">
+                        <div class="faq-question">
+                            <span>Q</span>
+                            <span>포인트 충전 세금계산서는 어떻게 발급받나요?</span>
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                        <div class="faq-answer">
+                            <p>포인트 충전 세금계산서는 마이페이지 > 결제내역에서 발급받을 수 있습니다. 사업자등록번호가 필요하며, 발급 후 이메일로 전송됩니다.</p>
+                        </div>
+                    </div>
+
+                    <div class="faq-item">
+                        <div class="faq-question">
+                            <span>Q</span>
+                            <span>Place 키워드가 순위에 미치는 영향은?</span>
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                        <div class="faq-answer">
+                            <p>Place 키워드는 네이버 지도 검색 결과에 영향을 미치며, 지역 기반 검색에서 상위 노출에 도움이 됩니다.</p>
+                        </div>
+                    </div>
+
+                    <div class="faq-item">
+                        <div class="faq-question">
+                            <span>Q</span>
+                            <span>Place 키워드 사용 제한이 있나요?</span>
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                        <div class="faq-answer">
+                            <p>Place 키워드는 월 10회까지 사용 가능하며, 중복 등록은 불가능합니다.</p>
+                        </div>
+                    </div>
+
+                    <div class="faq-item">
+                        <div class="faq-question">
+                            <span>Q</span>
+                            <span>Place 키워드 등록 제한이 있나요?</span>
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                        <div class="faq-answer">
+                            <p>하나의 계정당 최대 5개의 Place 키워드를 등록할 수 있습니다.</p>
+                        </div>
+                    </div>
+
+                    <div class="faq-item">
+                        <div class="faq-question">
+                            <span>Q</span>
+                            <span>Place 키워드 분석에서 순위는 어떻게 확인하나요?</span>
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                        <div class="faq-answer">
+                            <p>Place 키워드 분석 페이지에서 실시간 순위를 확인할 수 있으며, 일별/주별/월별 순위 변화를 그래프로 확인 가능합니다.</p>
+                        </div>
+                    </div>
+
+                    <div class="faq-item">
+                        <div class="faq-question">
+                            <span>Q</span>
+                            <span>Place 링크와 좋아요가 안 올라가요.</span>
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                        <div class="faq-answer">
+                            <p>Place 링크와 좋아요는 네이버 정책에 따라 제한될 수 있습니다. 자연스러운 활동을 권장합니다.</p>
+                        </div>
+                    </div>
+
+                    <div class="faq-item">
+                        <div class="faq-question">
+                            <span>Q</span>
+                            <span>포인트 결제 방법은?</span>
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                        <div class="faq-answer">
+                            <p>신용카드, 계좌이체, 휴대폰 결제, 간편결제 등 다양한 방법으로 포인트를 충전할 수 있습니다.</p>
+                        </div>
+                    </div>
+
+                    <div class="faq-item">
+                        <div class="faq-question">
+                            <span>Q</span>
+                            <span>구매(블로그, 단체, 인스타그램, SNS) 포인트 결제는?</span>
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                        <div class="faq-answer">
+                            <p>각 플랫폼별로 다른 포인트 요금이 적용됩니다. 상세 요금은 서비스 이용 페이지에서 확인 가능합니다.</p>
+                        </div>
+                    </div>
+
+                    <div class="faq-item">
+                        <div class="faq-question">
+                            <span>Q</span>
+                            <span>고객센터는 어떻게 이용하나요? (카카오톡, 전화 1:1)</span>
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                        <div class="faq-answer">
+                            <p>카카오톡 상담과 전화 상담 모두 가능합니다. 카카오톡: @내손안에슈퍼바이저, 전화: 0504-2525-1228</p>
+                        </div>
+                    </div>
+
+                    <div class="faq-item">
+                        <div class="faq-question">
+                            <span>Q</span>
+                            <span>실수로 버튼을 눌렀어요.</span>
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                        <div class="faq-answer">
+                            <p>실수로 결제하신 경우 즉시 고객센터로 연락주시면 도움을 드릴 수 있습니다.</p>
+                        </div>
+                    </div>
+
+                    <div class="faq-item">
+                        <div class="faq-question">
+                            <span>Q</span>
+                            <span>리뷰 마감일을 놓쳤을 때는?</span>
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                        <div class="faq-answer">
+                            <p>리뷰 마감일을 놓친 경우 포인트 지급이 제한될 수 있습니다. 1:1 문의를 통해 상황을 설명해주세요.</p>
+                        </div>
+                    </div>
+
+                    <div class="faq-item">
+                        <div class="faq-question">
+                            <span>Q</span>
+                            <span>실수로 신청했을 때 취소는?</span>
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                        <div class="faq-answer">
+                            <p>신청 후 24시간 이내에는 취소가 가능합니다. 그 이후에는 1:1 문의를 통해 문의해주세요.</p>
+                        </div>
+                    </div>
+
+                    <div class="faq-item">
+                        <div class="faq-question">
+                            <span>Q</span>
+                            <span>신청 마감일을 놓쳤을 때는?</span>
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                        <div class="faq-answer">
+                            <p>신청 마감일을 놓친 경우 해당 체험단에 참여할 수 없습니다. 다음 기회를 이용해주세요.</p>
+                        </div>
+                    </div>
+
+                    <div class="faq-item">
+                        <div class="faq-question">
+                            <span>Q</span>
+                            <span>신청이 안 되는 이유는?</span>
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                        <div class="faq-answer">
+                            <p>포인트 부족, 신청 조건 미충족, 계정 상태 등 다양한 이유가 있을 수 있습니다. 1:1 문의를 통해 확인해주세요.</p>
+                        </div>
+                    </div>
+
+                    <div class="faq-item">
+                        <div class="faq-question">
+                            <span>Q</span>
+                            <span>신청 후 추가 포인트가 안 들어와요.</span>
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                        <div class="faq-answer">
+                            <p>포인트 지급은 체험단 완료 후 3-5일 소요됩니다. 지연 시 고객센터로 문의해주세요.</p>
+                        </div>
+                    </div>
+
+                    <div class="faq-item">
+                        <div class="faq-question">
+                            <span>Q</span>
+                            <span>신청/연장 놓쳐서 손해가 났어요.</span>
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                        <div class="faq-answer">
+                            <p>개인 사정으로 인한 손해에 대해서는 보상이 어렵습니다. 정기적으로 공지사항을 확인해주세요.</p>
+                        </div>
+                    </div>
+
+                    <div class="faq-item">
+                        <div class="faq-question">
+                            <span>Q</span>
+                            <span>리뷰어에게 추가 가이드를 제공할 수 있나요?</span>
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                        <div class="faq-answer">
+                            <p>체험단 상세 페이지에서 리뷰 가이드를 작성하여 제공할 수 있습니다.</p>
+                        </div>
+                    </div>
+
+                    <div class="faq-item">
+                        <div class="faq-question">
+                            <span>Q</span>
+                            <span>선정된 리뷰어에게 어떻게 연락하나요?</span>
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                        <div class="faq-answer">
+                            <p>선정된 리뷰어에게는 자동으로 알림이 발송되며, 마이페이지에서 연락처를 확인할 수 있습니다.</p>
+                        </div>
+                    </div>
+
+                    <div class="faq-item">
+                        <div class="faq-question">
+                            <span>Q</span>
+                            <span>서비스 제공 문제로 신청 중단/구매가 되나요?</span>
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                        <div class="faq-answer">
+                            <p>서비스 제공에 문제가 있는 경우 1:1 문의를 통해 상황을 확인하고 조치해드립니다.</p>
+                        </div>
+                    </div>
+
+                    <div class="faq-item">
+                        <div class="faq-question">
+                            <span>Q</span>
+                            <span>리뷰어가 다른 리뷰어를 사용하면?</span>
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                        <div class="faq-answer">
+                            <p>이런 경우 신고해주시면 계정 제재 조치를 취하겠습니다.</p>
+                        </div>
+                    </div>
+
+                    <div class="faq-item">
+                        <div class="faq-question">
+                            <span>Q</span>
+                            <span>네이버 예약 및 영수증 리뷰는?</span>
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                        <div class="faq-answer">
+                            <p>네이버 예약과 영수증 리뷰는 별도 요금이 적용되며, 상세 내용은 서비스 안내를 참고해주세요.</p>
+                        </div>
+                    </div>
+
+                    <div class="faq-item">
+                        <div class="faq-question">
+                            <span>Q</span>
+                            <span>신청자/리뷰어 변경은?</span>
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                        <div class="faq-answer">
+                            <p>신청자/리뷰어 변경은 신청 후 24시간 이내에만 가능합니다.</p>
+                        </div>
+                    </div>
+
+                    <div class="faq-item">
+                        <div class="faq-question">
+                            <span>Q</span>
+                            <span>앱 사용법은?</span>
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                        <div class="faq-answer">
+                            <p>앱 사용법은 앱 내 도움말과 튜토리얼을 참고해주세요.</p>
+                        </div>
+                    </div>
+
+                    <div class="faq-item">
+                        <div class="faq-question">
+                            <span>Q</span>
+                            <span>앱이 뭔가요?</span>
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                        <div class="faq-answer">
+                            <p>내손안에 슈퍼바이저는 체험단 모집 및 관리 플랫폼입니다.</p>
+                        </div>
+                    </div>
+
+                    <div class="faq-item">
+                        <div class="faq-question">
+                            <span>Q</span>
+                            <span>다른 ID로 로그인하면 자동 로그인되나요?</span>
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                        <div class="faq-answer">
+                            <p>다른 ID로 로그인 시 자동 로그인은 되지 않습니다. 각 계정별로 별도 로그인이 필요합니다.</p>
+                        </div>
+                    </div>
+
+                    <div class="faq-item">
+                        <div class="faq-question">
+                            <span>Q</span>
+                            <span>신청자 신원 확인은?</span>
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                        <div class="faq-answer">
+                            <p>신청자 신원 확인은 본인 인증을 통해 이루어집니다.</p>
+                        </div>
+                    </div>
+
+                    <div class="faq-item">
+                        <div class="faq-question">
+                            <span>Q</span>
+                            <span>신청 취소 사유는?</span>
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                        <div class="faq-answer">
+                            <p>신청 취소 사유는 각 체험단별로 다르며, 상세 내용은 체험단 안내를 확인해주세요.</p>
+                        </div>
+                    </div>
+
+                    <div class="faq-item">
+                        <div class="faq-question">
+                            <span>Q</span>
+                            <span>리뷰어가 결제 후 취소하면 포인트 환불되나요?</span>
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                        <div class="faq-answer">
+                            <p>리뷰어가 결제 후 취소하는 경우, 환불 정책에 따라 처리됩니다.</p>
+                        </div>
+                    </div>
+
+                    <div class="faq-item">
+                        <div class="faq-question">
+                            <span>Q</span>
+                            <span>빠른 리뷰 리뷰 전송은?</span>
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                        <div class="faq-answer">
+                            <p>빠른 리뷰는 체험 완료 후 24시간 이내에 전송해주세요.</p>
+                        </div>
+                    </div>
+
+                    <div class="faq-item">
+                        <div class="faq-question">
+                            <span>Q</span>
+                            <span>일괄 신청은?</span>
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                        <div class="faq-answer">
+                            <p>일괄 신청 기능을 통해 여러 체험단을 한 번에 신청할 수 있습니다.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-left">
+                    <ul class="footer-links">
+                        <li><a href="#">회사소개</a></li>
+                        <li><a href="#">이용약관</a></li>
+                        <li><a href="#">개인정보처리방침</a></li>
+                        <li><a href="#">고객센터</a></li>
+                        <li><a href="#">제휴문의</a></li>
+                        <li><a href="#">공지사항</a></li>
+                        <li><a href="#">채용정보</a></li>
+                    </ul>
+                </div>
+                
+                <div class="footer-center">
+                    <div class="social-icons">
+                        <i class="fab fa-kaggle"></i>
+                        <i class="fas fa-blog"></i>
+                        <i class="fab fa-instagram"></i>
+                        <i class="fab fa-youtube"></i>
+                    </div>
+                    <p class="unsubscribe">내손안에 슈퍼바이저</p>
+                    <div class="company-info">
+                        <p>회사주소: 서울 강남구 영동대로 602</p>
+                        <p>이메일: nbbranding@naver.com</p>
+                        <p>사업자등록번호: 298-06-03540</p>
+                    </div>
+                </div>
+                
+                <div class="footer-right">
+                    <h3>고객센터 10:00 ~ 18:00</h3>
+                    <p class="phone">0504-2525-1228</p>
+                </div>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>
+

@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>체험단 검색 - 내손안에 슈퍼바이저</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="search-styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <!-- Header -->
+    <header class="search-header">
+        <div class="container">
+            <div class="header-content">
+                <!-- Logo -->
+                <div class="logo">
+                    <div class="logo-icon">
+                        <i class="fas fa-heart"></i>
+                        <i class="fas fa-hand-paper"></i>
+                    </div>
+                    <h1 data-translate="brand.name">내손안에 슈퍼바이저</h1>
+                </div>
+                
+                <!-- Search Bar -->
+                <div class="search-bar">
+                    <input type="text" placeholder="체험단 상품을 찾아보세요!" id="searchInput">
+                    <button class="search-btn" onclick="performSearch()">
+                        <i class="fas fa-search"></i>
+                    </button>
+                </div>
+                
+                <!-- Navigation Menu -->
+                <nav class="nav-menu">
+                    <a href="index.html" class="nav-link">메인</a>
+                    <a href="experience-registration.html" class="nav-link">체험단 모집</a>
+                    <a href="hotplace.html" class="nav-link">핫플 맛집</a>
+                    <a href="guide.html" class="nav-link">이용가이드</a>
+                </nav>
+                
+                <!-- Language Selector -->
+                <div class="language-selector">
+                    <button class="language-btn">
+                        <i class="fas fa-globe"></i>
+                        <span>한국어</span>
+                        <i class="fas fa-chevron-down"></i>
+                    </button>
+                </div>
+                
+                <!-- Header Icons -->
+                <div class="header-icons">
+                    <button class="icon-btn" title="사용자">
+                        <i class="fas fa-user"></i>
+                    </button>
+                    <button class="icon-btn" title="장바구니">
+                        <i class="fas fa-shopping-cart"></i>
+                    </button>
+                    <button class="icon-btn" title="알림">
+                        <i class="fas fa-bell"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Search Page Content -->
+    <main class="search-page">
+        <div class="container">
+            <!-- Page Header -->
+            <div class="page-header">
+                <h2>체험단 검색</h2>
+                <p>원하는 지역과 카테고리로 체험단을 찾아보세요</p>
+            </div>
+
+            <!-- Search Filters -->
+            <div class="search-filters">
+                <div class="filter-section">
+                    <h4>지역</h4>
+                    <div class="region-buttons">
+                        <button class="region-btn active" data-region="all" onclick="filterByRegion('all')">전체</button>
+                        <button class="region-btn" data-region="seoul" onclick="filterByRegion('seoul')">서울</button>
+                        <button class="region-btn" data-region="gyeonggi" onclick="filterByRegion('gyeonggi')">경기</button>
+                        <button class="region-btn" data-region="incheon" onclick="filterByRegion('incheon')">인천</button>
+                        <button class="region-btn" data-region="busan" onclick="filterByRegion('busan')">부산</button>
+                        <button class="region-btn" data-region="daegu" onclick="filterByRegion('daegu')">대구</button>
+                        <button class="region-btn" data-region="gwangju" onclick="filterByRegion('gwangju')">광주</button>
+                        <button class="region-btn" data-region="daejeon" onclick="filterByRegion('daejeon')">대전</button>
+                        <button class="region-btn" data-region="ulsan" onclick="filterByRegion('ulsan')">울산</button>
+                        <button class="region-btn" data-region="sejong" onclick="filterByRegion('sejong')">세종</button>
+                        <button class="region-btn" data-region="gangwon" onclick="filterByRegion('gangwon')">강원</button>
+                        <button class="region-btn" data-region="chungbuk" onclick="filterByRegion('chungbuk')">충북</button>
+                        <button class="region-btn" data-region="chungnam" onclick="filterByRegion('chungnam')">충남</button>
+                        <button class="region-btn" data-region="jeonbuk" onclick="filterByRegion('jeonbuk')">전북</button>
+                        <button class="region-btn" data-region="jeonnam" onclick="filterByRegion('jeonnam')">전남</button>
+                        <button class="region-btn" data-region="gyeongbuk" onclick="filterByRegion('gyeongbuk')">경북</button>
+                        <button class="region-btn" data-region="gyeongnam" onclick="filterByRegion('gyeongnam')">경남</button>
+                        <button class="region-btn" data-region="jeju" onclick="filterByRegion('jeju')">제주</button>
+                    </div>
+                </div>
+                
+                <div class="filter-section">
+                    <h4>서울 구/군</h4>
+                    <div class="district-buttons" id="seoulDistricts" style="display: none;">
+                        <button class="district-btn" data-district="gangnam" onclick="filterByDistrict('gangnam')">강남구</button>
+                        <button class="district-btn" data-district="gangdong" onclick="filterByDistrict('gangdong')">강동구</button>
+                        <button class="district-btn" data-district="gangbuk" onclick="filterByDistrict('gangbuk')">강북구</button>
+                        <button class="district-btn" data-district="gangseo" onclick="filterByDistrict('gangseo')">강서구</button>
+                        <button class="district-btn" data-district="gwanak" onclick="filterByDistrict('gwanak')">관악구</button>
+                        <button class="district-btn" data-district="gwangjin" onclick="filterByDistrict('gwangjin')">광진구</button>
+                        <button class="district-btn" data-district="guro" onclick="filterByDistrict('guro')">구로구</button>
+                        <button class="district-btn" data-district="geumcheon" onclick="filterByDistrict('geumcheon')">금천구</button>
+                        <button class="district-btn" data-district="nowon" onclick="filterByDistrict('nowon')">노원구</button>
+                        <button class="district-btn" data-district="dobong" onclick="filterByDistrict('dobong')">도봉구</button>
+                        <button class="district-btn" data-district="dongdaemun" onclick="filterByDistrict('dongdaemun')">동대문구</button>
+                        <button class="district-btn" data-district="dongjak" onclick="filterByDistrict('dongjak')">동작구</button>
+                        <button class="district-btn" data-district="mapo" onclick="filterByDistrict('mapo')">마포구</button>
+                        <button class="district-btn" data-district="seodaemun" onclick="filterByDistrict('seodaemun')">서대문구</button>
+                        <button class="district-btn" data-district="seocho" onclick="filterByDistrict('seocho')">서초구</button>
+                        <button class="district-btn" data-district="seongdong" onclick="filterByDistrict('seongdong')">성동구</button>
+                        <button class="district-btn" data-district="seongbuk" onclick="filterByDistrict('seongbuk')">성북구</button>
+                        <button class="district-btn" data-district="songpa" onclick="filterByDistrict('songpa')">송파구</button>
+                        <button class="district-btn" data-district="yangcheon" onclick="filterByDistrict('yangcheon')">양천구</button>
+                        <button class="district-btn" data-district="yeongdeungpo" onclick="filterByDistrict('yeongdeungpo')">영등포구</button>
+                        <button class="district-btn" data-district="yongsan" onclick="filterByDistrict('yongsan')">용산구</button>
+                        <button class="district-btn" data-district="eunpyeong" onclick="filterByDistrict('eunpyeong')">은평구</button>
+                        <button class="district-btn" data-district="jongno" onclick="filterByDistrict('jongno')">종로구</button>
+                        <button class="district-btn" data-district="jung" onclick="filterByDistrict('jung')">중구</button>
+                        <button class="district-btn" data-district="jungnang" onclick="filterByDistrict('jungnang')">중랑구</button>
+                    </div>
+                </div>
+                
+                <div class="filter-section">
+                    <h4>기타 필터</h4>
+                    <div class="other-filters">
+                        <select id="categoryFilter" onchange="applyFilters()">
+                            <option value="">카테고리</option>
+                            <option value="restaurant">맛집</option>
+                            <option value="food">식품</option>
+                            <option value="beauty">뷰티</option>
+                            <option value="travel">여행</option>
+                            <option value="digital">디지털</option>
+                            <option value="pets">반려동물</option>
+                            <option value="other">기타</option>
+                        </select>
+                        <select id="channelFilter" onchange="applyFilters()">
+                            <option value="">채널</option>
+                            <option value="blog">블로그</option>
+                            <option value="blog_clip">블로그+클립</option>
+                            <option value="reels">릴스</option>
+                            <option value="shorts">쇼츠</option>
+                            <option value="instagram">인스타그램</option>
+                            <option value="clip">클립</option>
+                            <option value="youtube">유튜브</option>
+                            <option value="tiktok">틱톡</option>
+                            <option value="xiaohongshu">샤오홍슈</option>
+                            <option value="twitter">X(트위터)</option>
+                        </select>
+                        <select id="sortFilter" onchange="applyFilters()">
+                            <option value="latest">최신순</option>
+                            <option value="deadline">마감임박순</option>
+                            <option value="participants">신청자순</option>
+                        </select>
+                        <button id="resetFilters" class="reset-btn" onclick="resetAllFilters()">
+                            <i class="fas fa-undo"></i>
+                            필터 초기화
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Search Results -->
+            <div class="search-results">
+                <div class="results-header">
+                    <h4>검색 결과</h4>
+                    <span id="resultCount">0개</span>
+                </div>
+                <div class="experience-grid" id="searchResults">
+                    <!-- 검색 결과가 여기에 표시됩니다 -->
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-left">
+                    <ul class="footer-links">
+                        <li><a href="#">회사소개</a></li>
+                        <li><a href="#">이용약관</a></li>
+                        <li><a href="#">개인정보처리방침</a></li>
+                        <li><a href="#">고객센터</a></li>
+                        <li><a href="#">제휴문의</a></li>
+                        <li><a href="#">공지사항</a></li>
+                        <li><a href="#">채용정보</a></li>
+                    </ul>
+                </div>
+                
+                <div class="footer-center">
+                    <div class="social-icons">
+                        <i class="fab fa-kaggle"></i>
+                        <i class="fas fa-blog"></i>
+                        <i class="fab fa-instagram"></i>
+                        <i class="fab fa-youtube"></i>
+                    </div>
+                    <p class="unsubscribe">내손안에 슈퍼바이저</p>
+                    <div class="company-info">
+                        <p>회사주소: 서울 강남구 영동대로 602</p>
+                        <p>이메일: nbbranding@naver.com</p>
+                        <p>사업자등록번호: 298-06-03540</p>
+                    </div>
+                </div>
+                
+                <div class="footer-right">
+                    <h3>고객센터 10:00 ~ 18:00</h3>
+                    <p class="phone">+82 10-8798-0880</p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="search-script.js"></script>
+</body>
+</html>
