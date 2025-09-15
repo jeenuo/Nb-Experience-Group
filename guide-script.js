@@ -258,3 +258,8 @@ function goToSearch() {
     window.location.href = 'search.html';
 }
 
+// 준비중 팝업 표시
+function showComingSoon(serviceName) {
+    alert(`${serviceName} 서비스는 현재 준비중입니다.\n빠른 시일 내에 서비스할 예정입니다.`);
+}
+

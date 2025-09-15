@@ -33,8 +33,8 @@ function setupSearchBar() {
 // 텍스트 검색 수행
 function performTextSearch(query) {
     const experiences = JSON.parse(localStorage.getItem('experiences') || '[]');
-    // 승인된 체험단만 필터링
-    const approvedExperiences = experiences.filter(exp => exp.status === 'approved');
+    // 검색 페이지에는 승인됨 + 진행중 체험단을 포함, 종료는 제외
+    const approvedExperiences = experiences.filter(exp => exp.status === 'approved' || exp.status === 'ongoing');
     const filteredExperiences = approvedExperiences.filter(experience => {
         const searchText = `${experience.title} ${experience.description} ${experience.category} ${experience.managerName}`.toLowerCase();
         return searchText.includes(query.toLowerCase());
@@ -106,7 +106,7 @@ function filterByDistrict(district) {
 function applyFilters() {
     const experiences = JSON.parse(localStorage.getItem('experiences') || '[]');
     // 승인된 체험단만 필터링
-    const approvedExperiences = experiences.filter(exp => exp.status === 'approved');
+    const approvedExperiences = experiences.filter(exp => exp.status === 'approved' || exp.status === 'ongoing');
     const selectedRegion = document.querySelector('.region-btn.active')?.dataset.region;
     const selectedDistrict = document.querySelector('.district-btn.active')?.dataset.district;
     const selectedCategory = document.getElementById('categoryFilter').value;
@@ -144,11 +144,34 @@ function applyFilters() {
             }
         }
         
-        // 채널 필터
+        // 채널 필터 (코드/표기/복수 채널 모두 지원)
         if (selectedChannel) {
-            const channelName = getChannelName(selectedChannel);
-            if (experience.channel !== channelName) {
-                console.log('채널 필터로 제외:', experience.title, '채널:', experience.channel, '선택된 채널:', selectedChannel, '변환된 채널명:', channelName);
+            const selectedName = getChannelName(selectedChannel); // 표기명
+
+            // 경험치에 저장된 채널 값을 배열로 정규화
+            const channelsRaw = experience.channels || experience.channel || '';
+            const channelList = Array.isArray(channelsRaw)
+                ? channelsRaw
+                : String(channelsRaw)
+                    .split(',')
+                    .map(c => c.trim())
+                    .filter(Boolean);
+
+            // 비교를 위해 코드/표기 둘 다로 매칭 시도
+            const matches = channelList.some(c => {
+                const code = getChannelCode(c);
+                const name = getChannelName(c);
+                return (
+                    c === selectedChannel ||
+                    c === selectedName ||
+                    code === selectedChannel ||
+                    name === selectedName
+                );
+            });
+
+            if (!matches) {
+                // 디버깅 로그
+                console.log('채널 필터로 제외:', experience.title, '채널들:', channelList, '선택값:', selectedChannel, '표기:', selectedName);
                 return false;
             }
         }
@@ -196,6 +219,20 @@ function displaySearchResults(experiences) {
         const daysLeft = calculateDaysLeft(experience.endDate);
         const locationText = getLocationText(experience.region, experience.district);
         
+        // 체험단 상태 확인
+        const isExpired = experience.status === 'expired';
+        const isOngoing = experience.status === 'ongoing';
+        
+        // 진행중인 체험단의 경우 남은 체험 일수 계산
+        let statusText = '';
+        if (isExpired) {
+            statusText = '모집 종료';
+        } else if (isOngoing) {
+            statusText = '체험중';
+        } else {
+            statusText = daysLeft === 1 ? '오늘 마감' : `${daysLeft}일 남음`;
+        }
+        
         return `
             <div class="experience-card" onclick="viewExperienceDetails('${experience.id}')">
                 <img src="${experience.thumbnail}" alt="${experience.title}" class="card-image" onerror="this.src='https://via.placeholder.com/300x220/9B59B6/FFFFFF?text=이미지'">
@@ -207,12 +244,14 @@ function displaySearchResults(experiences) {
                             <div class="card-location">${locationText}</div>
                         </div>
                         <div class="card-badges">
+                            ${isExpired ? '<div class="card-expired">종료됨</div>' : ''}
+                            ${isOngoing ? '<div class="card-ongoing">진행중</div>' : ''}
                             ${experience.isPopular ? '<div class="card-premium">프리미엄</div>' : ''}
                         </div>
                     </div>
                     
                     <div class="card-info">
-                        <span class="card-deadline">${daysLeft}일 남음</span>
+                        <span class="card-deadline">${statusText}</span>
                         <span class="card-participants">신청 ${Math.floor(Math.random() * 100)}/${experience.participantCount}</span>
                     </div>
                     
@@ -246,8 +285,8 @@ function displaySearchResults(experiences) {
 // 검색 결과 로드
 function loadSearchResults() {
     const experiences = JSON.parse(localStorage.getItem('experiences') || '[]');
-    // 승인된 체험단만 필터링
-    const approvedExperiences = experiences.filter(exp => exp.status === 'approved');
+    // 검색 기본 목록: 승인됨 + 진행중 포함, 종료 제외
+    const approvedExperiences = experiences.filter(exp => exp.status === 'approved' || exp.status === 'ongoing');
     displaySearchResults(approvedExperiences);
 }
 
@@ -422,6 +461,20 @@ function viewExperienceDetails(experienceId) {
     const daysLeft = calculateDaysLeft(experience.endDate);
     const locationText = getLocationText(experience.region, experience.district);
     
+    // 체험단 상태 확인
+    const isExpired = experience.status === 'expired';
+    const isOngoing = experience.status === 'ongoing';
+    
+    // 진행중인 체험단의 경우 남은 체험 일수 계산
+    let statusText = '';
+    if (isExpired) {
+        statusText = '모집 종료';
+    } else if (isOngoing) {
+        statusText = '체험중';
+    } else {
+        statusText = daysLeft === 1 ? '오늘 마감' : `${daysLeft}일 남음`;
+    }
+    
     const modal = document.createElement('div');
     modal.className = 'modal';
     modal.style.display = 'flex';
@@ -444,7 +497,7 @@ function viewExperienceDetails(experienceId) {
                         </div>
                         
                         <div class="card-info">
-                            <span class="card-deadline">${daysLeft}일 남음</span>
+                            <span class="card-deadline">${statusText}</span>
                             <span class="card-participants">신청 ${Math.floor(Math.random() * 100)}/${experience.participantCount || '10'}</span>
                         </div>
 
@@ -492,6 +545,7 @@ function viewExperienceDetails(experienceId) {
                                 </div>
                             </div>
                             
+                            ${experience.type !== 'journalist' ? `
                             <div class="detail-section">
                                 <h4>방문 가능 일자 및 시간</h4>
                                 <p><strong>체험 기간:</strong> ${experience.experienceStartDate || '-'} ~ ${experience.experienceEndDate || '-'}</p>
@@ -505,6 +559,7 @@ function viewExperienceDetails(experienceId) {
                                     <p><strong>예약 시 주의사항:</strong> ${experience.reservationNotes}</p>
                                 ` : ''}
                             </div>
+                            ` : ''}
                         </div>
                     </div>
                 </div>
@@ -1091,6 +1146,23 @@ function getChannelName(channelValue) {
     return channels[channelValue] || '블로그';
 }
 
+// 채널 코드 가져오기 (표기명을 코드로 역변환)
+function getChannelCode(value) {
+    const map = {
+        '블로그': 'blog',
+        '블로그+클립': 'blog_clip',
+        '릴스': 'reels',
+        '쇼츠': 'shorts',
+        '인스타그램': 'instagram',
+        '클립': 'clip',
+        '유튜브': 'youtube',
+        '틱톡': 'tiktok',
+        '샤오홍슈': 'xiaohongshu',
+        'X(트위터)': 'twitter'
+    };
+    return map[value] || value;
+}
+
 // 카테고리 이름 가져오기
 function getCategoryName(categoryValue) {
     const categories = {
@@ -1103,4 +1175,9 @@ function getCategoryName(categoryValue) {
         'other': '기타'
     };
     return categories[categoryValue] || '기타';
+}
+
+// 준비중 팝업 표시
+function showComingSoon(serviceName) {
+    alert(`${serviceName} 서비스는 현재 준비중입니다.\n빠른 시일 내에 서비스할 예정입니다.`);
 }

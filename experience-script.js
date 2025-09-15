@@ -386,88 +386,13 @@ document.addEventListener('DOMContentLoaded', function() {
         // 기존 파일 제거
         uploadedFiles.innerHTML = '';
         
-        // 파일을 images 폴더에 저장
-        saveFileToImagesFolder(file);
-    }
-    
-    // 파일을 images 폴더에 저장하는 함수
-    function saveFileToImagesFolder(file) {
+        // 파일 미리보기 생성
         const reader = new FileReader();
         reader.onload = function(e) {
-            // 고유한 파일명 생성 (타임스탬프 + 원본 파일명)
-            const timestamp = Date.now();
-            const fileName = `${timestamp}_${file.name}`;
-            const imagePath = `images/${fileName}`;
-            
-            // File System Access API를 사용하여 파일 저장
-            if ('showSaveFilePicker' in window) {
-                // 최신 브라우저에서 파일 저장
-                saveFileWithFileSystemAPI(file, fileName);
-            } else {
-                // 구형 브라우저에서는 다운로드로 처리
-                downloadFile(file, fileName);
-            }
-            
-            // 미리보기 생성 (실제 저장된 경로 사용)
-            const fileItem = createFileItem(file, imagePath);
+            const fileItem = createFileItem(file, e.target.result);
             uploadedFiles.appendChild(fileItem);
-            
-            // 로컬 스토리지에 이미지 경로 저장
-            saveImagePathToStorage(imagePath, file.name);
         };
         reader.readAsDataURL(file);
-    }
-    
-    // File System Access API를 사용한 파일 저장
-    async function saveFileWithFileSystemAPI(file, fileName) {
-        try {
-            const fileHandle = await window.showSaveFilePicker({
-                suggestedName: fileName,
-                types: [{
-                    description: 'Image files',
-                    accept: {
-                        'image/jpeg': ['.jpg', '.jpeg'],
-                        'image/png': ['.png']
-                    }
-                }]
-            });
-            
-            const writable = await fileHandle.createWritable();
-            await writable.write(file);
-            await writable.close();
-            
-            console.log('파일이 성공적으로 저장되었습니다:', fileName);
-        } catch (error) {
-            console.log('파일 저장이 취소되었거나 실패했습니다:', error);
-            // 사용자가 취소한 경우 다운로드로 처리
-            downloadFile(file, fileName);
-        }
-    }
-    
-    // 다운로드 방식으로 파일 저장
-    function downloadFile(file, fileName) {
-        const url = URL.createObjectURL(file);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = fileName;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-        
-        console.log('파일이 다운로드되었습니다. images 폴더에 수동으로 이동시켜주세요:', fileName);
-        alert(`파일이 다운로드되었습니다.\n파일명: ${fileName}\n\n다운로드 폴더에서 이 파일을 프로젝트의 images 폴더로 이동시켜주세요.`);
-    }
-    
-    // 이미지 경로를 로컬 스토리지에 저장
-    function saveImagePathToStorage(imagePath, originalFileName) {
-        const uploadedImages = JSON.parse(localStorage.getItem('uploadedImages') || '[]');
-        uploadedImages.push({
-            path: imagePath,
-            originalName: originalFileName,
-            uploadTime: new Date().toISOString()
-        });
-        localStorage.setItem('uploadedImages', JSON.stringify(uploadedImages));
     }
     
     // 파일 유효성 검사
@@ -688,13 +613,10 @@ document.addEventListener('DOMContentLoaded', function() {
         const naverMapUrl = document.getElementById('naver_map_url');
         if (naverMapUrl) formData.append('url', naverMapUrl.value);
         
-        // 파일 - 이미지 경로 처리
-        const uploadedImages = JSON.parse(localStorage.getItem('uploadedImages') || '[]');
-        if (uploadedImages.length > 0) {
-            const latestImage = uploadedImages[uploadedImages.length - 1];
-            formData.append('thumbnail', latestImage.path);
-        } else {
-            formData.append('thumbnail', 'https://via.placeholder.com/300x220/9B59B6/FFFFFF?text=이미지');
+        // 파일
+        const thumbnailFile = document.getElementById('thumbnailFile');
+        if (thumbnailFile && thumbnailFile.files.length > 0) {
+            formData.append('thumbnailFile', thumbnailFile.files[0]);
         }
         
         // 연락처
@@ -794,11 +716,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 console.log('성공 메시지 표시 시작');
                 showRegistrationSuccess();
                 console.log('성공 메시지 표시 완료');
-                
-                // 폼 초기화
-                document.getElementById('experienceForm').reset();
-                uploadedFiles.innerHTML = '';
-                localStorage.removeItem('uploadedImages');
                 
                 // 메인 페이지로 이동
                 setTimeout(() => {
@@ -1162,4 +1079,9 @@ document.addEventListener('DOMContentLoaded', function() {
 // 검색 페이지로 이동
 function goToSearch() {
     window.location.href = 'search.html';
+}
+
+// 준비중 팝업 표시
+function showComingSoon(serviceName) {
+    alert(`${serviceName} 서비스는 현재 준비중입니다.\n빠른 시일 내에 서비스할 예정입니다.`);
 }

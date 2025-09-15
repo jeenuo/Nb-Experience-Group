@@ -358,12 +358,14 @@
 .experience-card {
     background: white;
     border-radius: 20px;
-    overflow: hidden;
+    /* 내용 잘림 방지: 모서리 라운드 유지가 필요하면 하위 요소에서만 clip 처리 */
+    overflow: visible;
     box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
     transition: all 0.3s ease;
     cursor: pointer;
     border: 1px solid #f0f0f0;
-    min-height: 450px;
+    /* 고정 최소 높이로 인해 하단이 잘릴 수 있어 자동 높이로 변경 */
+    min-height: auto;
     display: flex;
     flex-direction: column;
 }
@@ -382,7 +384,8 @@
 }
 
 .card-content {
-    padding: 25px;
+    /* 하단 버튼이 잘리는 문제 방지: 아래 여백 추가 */
+    padding: 25px 25px 32px;
     flex: 1;
     display: flex;
     flex-direction: column;
@@ -499,12 +502,10 @@
     padding: 10px 15px;
     border-radius: 10px;
     line-height: 1.4;
-    max-height: 60px;
-    overflow: hidden;
-    display: -webkit-box;
-    -webkit-line-clamp: 3;
-    -webkit-box-orient: vertical;
-    margin-bottom: 10px;
+    /* 가격/혜택 라벨이 버튼을 밀어내지 않도록 최대 높이 완화 */
+    max-height: none;
+    overflow: visible;
+    margin-bottom: 14px;
 }
 
 .card-url {

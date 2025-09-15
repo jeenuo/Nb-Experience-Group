@@ -7,6 +7,8 @@
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="reviews-styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="languages.js" defer></script>
+    <script src="language-selector.js" defer></script>
 </head>
 <body>
     <!-- Header -->
@@ -29,9 +31,9 @@
             <div class="header-right">
                 <nav class="nav-links">
                     <a href="index.html">메인</a>
-                    <a href="experience-registration.html">체험단 모집</a>
                     <a href="hotplace.html">핫플 맛집</a>
-                    <a href="guide.html" class="active">이용가이드</a>
+                    <a href="reviews.html" class="active">이달의 리뷰</a>
+                    <a href="guide.html">이용가이드</a>
                 </nav>
                 <div class="language-selector">
                     <div class="language-widget">
@@ -64,7 +66,6 @@
                 </div>
                 <div class="user-icons">
                     <i class="fas fa-user"></i>
-                    <i class="fas fa-shopping-cart"></i>
                     <i class="fas fa-bell"></i>
                 </div>
             </div>
@@ -78,9 +79,9 @@
             <div class="page-header-content">
                 <div class="page-title">
                     <i class="fas fa-star"></i>
-                    <h1>이달의 리뷰</h1>
+                    <h1 data-translate="reviews.title">이달의 리뷰</h1>
                 </div>
-                <p>체험단 참여자들의 생생한 후기를 확인해보세요</p>
+                <p data-translate="reviews.subtitle">체험단 참여자들의 생생한 후기를 확인해보세요</p>
             </div>
         </div>
     </section>
@@ -145,13 +146,13 @@
             <div class="footer-content">
                 <div class="footer-left">
                     <ul class="footer-links">
-                        <li><a href="#" data-translate="footer.company">회사소개</a></li>
-                        <li><a href="#" data-translate="footer.terms">이용약관</a></li>
-                        <li><a href="#" data-translate="footer.privacy">개인정보처리방침</a></li>
-                        <li><a href="#" data-translate="footer.support">고객센터</a></li>
-                        <li><a href="#" data-translate="footer.partnership">제휴문의</a></li>
-                        <li><a href="#" data-translate="footer.notice">공지사항</a></li>
-                        <li><a href="#" data-translate="footer.careers">채용정보</a></li>
+                        <li><a href="#" onclick="showComingSoon('회사소개')" data-translate="footer.company">회사소개</a></li>
+                        <li><a href="#" onclick="showComingSoon('이용약관')" data-translate="footer.terms">이용약관</a></li>
+                        <li><a href="#" onclick="showComingSoon('개인정보처리방침')" data-translate="footer.privacy">개인정보처리방침</a></li>
+                        <li><a href="#" onclick="showComingSoon('고객센터')" data-translate="footer.support">고객센터</a></li>
+                        <li><a href="#" onclick="showComingSoon('제휴문의')" data-translate="footer.partnership">제휴문의</a></li>
+                        <li><a href="#" onclick="showComingSoon('공지사항')" data-translate="footer.notice">공지사항</a></li>
+                        <li><a href="#" onclick="showComingSoon('채용정보')" data-translate="footer.careers">채용정보</a></li>
                     </ul>
                 </div>
                 

@@ -58,6 +58,8 @@ function clearAllData() {
 }
 
 // 리뷰 데이터만 삭제
+
+
 function clearReviewData() {
     localStorage.removeItem('reviews');
     console.log('이달의 리뷰 데이터가 삭제되었습니다.');
@@ -121,9 +123,11 @@ function loadDashboardData() {
     const banners = JSON.parse(localStorage.getItem('banners') || '[]');
     const hotplaces = JSON.parse(localStorage.getItem('hotplaces') || '[]');
     
-    // 승인 상태별 체험단 개수 계산
+    // 상태별 체험단 개수 계산
     const pendingExperiences = experiences.filter(exp => exp.status === 'pending');
     const approvedExperiences = experiences.filter(exp => exp.status === 'approved');
+    const ongoingExperiences = experiences.filter(exp => exp.status === 'ongoing');
+    const expiredExperiences = experiences.filter(exp => exp.status === 'expired');
     const rejectedExperiences = experiences.filter(exp => exp.status === 'rejected');
     
     // 기본 통계 업데이트
@@ -141,151 +145,48 @@ function loadDashboardData() {
 
 // 체험단 관리
 function loadAdminExperiences() {
-    const experiences = JSON.parse(localStorage.getItem('experiences') || '[]');
+    // 먼저 체험단 상태를 확인하고 업데이트
+    const experiences = checkAndUpdateExpiredExperiences();
+    
     const experiencesList = document.getElementById('experiencesList');
     const totalExperiences = document.getElementById('totalExperiences');
-    const endedExperiences = document.getElementById('endedExperiences');
-    const cancelledExperiences = document.getElementById('cancelledExperiences');
+    const ongoingExperiences = document.getElementById('ongoingExperiences');
+    const expiredExperiences = document.getElementById('expiredExperiences');
     
-    // 승인된 체험단만 필터링
-    const approvedExperiences = experiences.filter(exp => exp.status === 'approved');
+    // 상태별 체험단 개수 계산
+    const approvedExp = experiences.filter(exp => exp.status === 'approved');
+    const ongoingExp = experiences.filter(exp => exp.status === 'ongoing');
+    const expiredExp = experiences.filter(exp => exp.status === 'expired');
     
-    // 종료된 체험단 (모집 마감일이 지난 체험단)
-    const today = new Date();
-    const endedExp = approvedExperiences.filter(exp => {
-        const endDate = new Date(exp.endDate);
-        return endDate < today;
-    });
-    
-    // 취소된 체험단 (거절된 체험단)
-    const cancelledExp = experiences.filter(exp => exp.status === 'rejected');
-    
+    // 통계 업데이트
     if (totalExperiences) {
-        totalExperiences.textContent = approvedExperiences.length;
+        totalExperiences.textContent = approvedExp.length;
     }
-    if (endedExperiences) {
-        endedExperiences.textContent = endedExp.length;
+    if (ongoingExperiences) {
+        ongoingExperiences.textContent = ongoingExp.length;
     }
-    if (cancelledExperiences) {
-        cancelledExperiences.textContent = cancelledExp.length;
-    }
-    
-    if (approvedExperiences.length === 0) {
-        experiencesList.innerHTML = '<div style="padding: 2rem; text-align: center; color: #666;">승인된 체험단이 없습니다.</div>';
-        return;
+    if (expiredExperiences) {
+        expiredExperiences.textContent = expiredExp.length;
     }
     
-    // 현재 필터 상태에 따라 체험단 표시
-    displayExperiencesByCurrentFilter(approvedExperiences);
-}
-
-// 현재 필터 상태에 따라 체험단 표시
-function displayExperiencesByCurrentFilter(experiences) {
-    const experiencesList = document.getElementById('experiencesList');
-    const currentFilter = window.currentExperienceFilter || 'active';
-    
-    let filteredExperiences = [];
-    
-    switch(currentFilter) {
-        case 'active':
-            // 활성 체험단 (모집 중인 체험단)
-            const today = new Date();
-            filteredExperiences = experiences.filter(exp => {
-                const endDate = new Date(exp.endDate);
-                return endDate >= today;
-            });
-            break;
-        case 'ended':
-            // 종료된 체험단
-            const todayEnded = new Date();
-            filteredExperiences = experiences.filter(exp => {
-                const endDate = new Date(exp.endDate);
-                return endDate < todayEnded;
-            });
-            break;
-        case 'cancelled':
-            // 취소된 체험단 (거절된 체험단)
-            const allExperiences = JSON.parse(localStorage.getItem('experiences') || '[]');
-            filteredExperiences = allExperiences.filter(exp => exp.status === 'rejected');
-            break;
-        default:
-            filteredExperiences = experiences;
-    }
-    
-    if (filteredExperiences.length === 0) {
-        const message = getEmptyMessage(currentFilter);
-        experiencesList.innerHTML = `<div style="padding: 2rem; text-align: center; color: #666;">${message}</div>`;
-        return;
-    }
-    
-    experiencesList.innerHTML = filteredExperiences.map(experience => `
-        <div class="admin-experience-item">
-            <div class="experience-info">
-                <h4>${experience.title}</h4>
-                <p>회사명: ${experience.companyName || '미입력'}</p>
-                <p>카테고리: ${experience.category || '기타'}</p>
-                <p>모집 기간: ${experience.startDate} ~ ${experience.endDate}</p>
-                <p>모집 인원: ${experience.participantCount || '미입력'}명</p>
-                <p class="popular-status">인기체험단: ${experience.isPopular ? '선택됨' : '미선택'}</p>
-                <p class="premium-status">P 체험단: ${experience.isPremium ? `선택됨 (${experience.premiumPoint || 0}원)` : '미선택'}</p>
-                ${currentFilter === 'cancelled' ? `<p class="status-info">상태: 거절됨</p>` : ''}
-                ${currentFilter === 'ended' ? `<p class="status-info">상태: 모집 종료</p>` : ''}
-            </div>
-            <div class="experience-actions">
-                ${currentFilter === 'active' ? `
-                    <button class="btn-popular ${experience.isPopular ? 'active' : ''}" onclick="togglePopularExperience('${experience.id}')">
-                        ${experience.isPopular ? '인기 해제' : '인기 선택'}
-                    </button>
-                    <button class="btn-premium" onclick="openPremiumModal('${experience.id}')" title="P 체험단 설정">
-                        <i class="fas fa-coins"></i>
-                    </button>
-                    <button class="btn-edit" onclick="editExperience('${experience.id}')">편집</button>
-                    <button class="btn-delete" onclick="deleteExperience('${experience.id}')">삭제</button>
-                ` : `
-                    <button class="btn-view" onclick="viewExperienceDetails('${experience.id}')">상세보기</button>
-                    ${currentFilter === 'cancelled' ? `<button class="btn-approve" onclick="approveExperience('${experience.id}')">재승인</button>` : ''}
-                `}
-            </div>
-        </div>
-    `).join('');
-}
-
-// 빈 목록 메시지 반환
-function getEmptyMessage(filter) {
-    switch(filter) {
-        case 'active':
-            return '활성 체험단이 없습니다.';
-        case 'ended':
-            return '종료된 체험단이 없습니다.';
-        case 'cancelled':
-            return '취소된 체험단이 없습니다.';
-        default:
-            return '체험단이 없습니다.';
-    }
-}
-
-// 상태별 체험단 표시
-function showExperiencesByStatus(status) {
-    window.currentExperienceFilter = status;
-    
-    // 카드 활성화 상태 업데이트
-    document.querySelectorAll('.stat-item.clickable').forEach(item => {
-        item.classList.remove('active');
-    });
-    event.target.closest('.stat-item').classList.add('active');
-    
-    // 체험단 목록 다시 로드
-    loadAdminExperiences();
+    // 기본적으로 모든 체험단 표시
+    displayExperiencesList(experiences);
 }
 
 // 체험단 편집
 function editExperience(experienceId) {
-    switchTab('edit');
     setTimeout(() => {
-        document.getElementById('editExperienceSelect').value = experienceId;
         loadExperienceForEdit(experienceId);
     }, 100);
 }
+
+
+// 상태별 체험단 표시
+function showExperiencesByStatus(status) {
+    document.getElementById('statusFilter').value = status;
+    filterExperiencesByStatus();
+}
+
 
 // 체험단 수정을 위한 데이터 로드
 function loadExperienceForEdit(experienceId) {
@@ -541,8 +442,18 @@ function handleAddExperienceSubmit(e) {
     
     const formData = new FormData(e.target);
     
-    // 필수 필드 검사
-    const requiredFields = ['title', 'companyName', 'category', 'type', 'channel', 'contactPhone', 'description', 'participantCount', 'region', 'address', 'startDate', 'endDate', 'experienceStartDate', 'experienceEndDate', 'providedServices'];
+    // 체험 유형 확인
+    const experienceType = formData.get('type');
+    const isJournalist = experienceType === 'journalist';
+    
+    // 필수 필드 검사 (기자단인 경우 일부 필드 제외)
+    const requiredFields = ['title', 'companyName', 'category', 'type', 'channel', 'contactPhone', 'description', 'participantCount', 'region', 'startDate', 'endDate', 'experienceStartDate', 'experienceEndDate', 'providedServices'];
+    
+    // 기자단이 아닌 경우에만 주소 필수
+    if (!isJournalist) {
+        requiredFields.push('address');
+    }
+    
     for (const field of requiredFields) {
         const value = formData.get(field);
         console.log(`필드 ${field}:`, value);
@@ -552,26 +463,48 @@ function handleAddExperienceSubmit(e) {
         }
     }
     
-    // 체험 가능 요일 검사 (선택된 버튼에서 가져오기)
-    const selectedDays = document.querySelectorAll('.day-btn.selected');
-    const availableDays = Array.from(selectedDays).map(btn => btn.dataset.day);
-    if (availableDays.length === 0) {
-        alert('체험 가능 요일을 최소 하나 이상 선택해주세요.');
-        return;
-    }
-    
-    // 시간 검사 (24시간 영업이 아닌 경우)
-    const is24Hours = document.getElementById('addIs24Hours').checked;
-    if (!is24Hours) {
-        const startHour = document.getElementById('addStartHour').value;
-        const startMinute = document.getElementById('addStartMinute').value;
-        const endHour = document.getElementById('addEndHour').value;
-        const endMinute = document.getElementById('addEndMinute').value;
-        
-        if (!startHour || !startMinute || !endHour || !endMinute) {
-            alert('체험 시간을 모두 선택해주세요.');
+    // 체험 가능 요일 검사 (기자단이 아닌 경우에만)
+    let availableDays = [];
+    if (!isJournalist) {
+        const selectedDays = document.querySelectorAll('.day-btn.selected');
+        availableDays = Array.from(selectedDays).map(btn => btn.dataset.day);
+        if (availableDays.length === 0) {
+            alert('체험 가능 요일을 최소 하나 이상 선택해주세요.');
             return;
         }
+    } else {
+        // 기자단인 경우 기본값 설정
+        availableDays = ['월', '화', '수', '목', '금', '토', '일'];
+    }
+    
+    // 시간 검사 (기자단이 아닌 경우에만)
+    let startTime = '';
+    let endTime = '';
+    let is24Hours = false;
+    
+    if (!isJournalist) {
+        is24Hours = document.getElementById('addIs24Hours').checked;
+        if (!is24Hours) {
+            const startHour = document.getElementById('addStartHour').value;
+            const startMinute = document.getElementById('addStartMinute').value;
+            const endHour = document.getElementById('addEndHour').value;
+            const endMinute = document.getElementById('addEndMinute').value;
+            
+            if (!startHour || !startMinute || !endHour || !endMinute) {
+                alert('체험 시간을 모두 선택해주세요.');
+                return;
+            }
+            startTime = `${startHour}:${startMinute}`;
+            endTime = `${endHour}:${endMinute}`;
+        } else {
+            startTime = '24시간';
+            endTime = '24시간';
+        }
+    } else {
+        // 기자단인 경우 기본값 설정
+        startTime = '기자단';
+        endTime = '기자단';
+        is24Hours = false;
     }
     
     // 썸네일 이미지 처리
@@ -602,7 +535,7 @@ function handleAddExperienceSubmit(e) {
         description: formData.get('description'),
         participantCount: formData.get('participantCount'),
         region: formData.get('region'),
-        address: formData.get('address'),
+        address: isJournalist ? '기자단' : formData.get('address'),
         startDate: formData.get('startDate'),
         endDate: formData.get('endDate'),
         experienceStartDate: experienceStartDate.toISOString().split('T')[0],
@@ -612,11 +545,11 @@ function handleAddExperienceSubmit(e) {
         url: formData.get('url') || '',
         thumbnail: thumbnailUrl,
         availableDays: availableDays,
-        startTime: is24Hours ? '24시간 영업' : `${document.getElementById('addStartHour').value}:${document.getElementById('addStartMinute').value}`,
-        endTime: is24Hours ? '24시간 영업' : `${document.getElementById('addEndHour').value}:${document.getElementById('addEndMinute').value}`,
+        startTime: startTime,
+        endTime: endTime,
         is24Hours: is24Hours,
-        sameDayReservation: document.querySelector('input[name="addSameDayReservation"]:checked').value,
-        reservationNotes: formData.get('reservationNotes') || '',
+        sameDayReservation: isJournalist ? 'impossible' : document.querySelector('input[name="addSameDayReservation"]:checked').value,
+        reservationNotes: isJournalist ? '기자단' : (formData.get('reservationNotes') || ''),
         isPopular: false,
         isPremium: false,
         premiumPoint: 0,
@@ -685,8 +618,20 @@ function clearAddForm() {
     // 당일 예약 라디오 버튼 초기화
     document.querySelector('input[name="addSameDayReservation"][value="possible"]').checked = true;
     
+    // 기자단 필드 토글 초기화
+    toggleAdminJournalistFields();
+    
     // 주의사항 초기화
     document.getElementById('addReservationNotes').value = '';
+}
+
+// 모든 체험단 데이터 삭제 (테스트용)
+function clearAllExperienceData() {
+    if (confirm('모든 체험단 데이터를 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.')) {
+        localStorage.removeItem('experiences');
+        alert('모든 체험단 데이터가 삭제되었습니다.');
+        location.reload();
+    }
     
     // 다른 입력 필드들의 이벤트 리스너 속성도 제거
     const thumbnailInput = document.getElementById('addThumbnail');
@@ -758,9 +703,136 @@ function getExperienceTypeName(typeValue) {
         'visit': '방문형',
         'delivery': '배송형',
         'pickup': '포장형',
-        'online': '온라인'
+        'online': '온라인',
+        'journalist': '기자단'
     };
     return types[typeValue] || '방문형';
+}
+
+// 관리자 페이지 기자단 필드 토글 함수
+function toggleAdminJournalistFields() {
+    const experienceType = document.getElementById('addType');
+    const addressGroup = document.getElementById('adminAddressGroup');
+    const scheduleGroup = document.getElementById('adminScheduleGroup');
+    const timeGroup = document.getElementById('adminTimeGroup');
+    const reservationGroup = document.getElementById('adminReservationGroup');
+    const reservationNotesGroup = document.getElementById('adminReservationNotesGroup');
+    const urlGroup = document.getElementById('adminUrlGroup');
+    
+    if (experienceType && experienceType.value === 'journalist') {
+        // 기자단 선택 시 필드 비활성화
+        if (addressGroup) {
+            addressGroup.style.display = 'none';
+            const addressInput = document.getElementById('addAddress');
+            if (addressInput) {
+                addressInput.removeAttribute('required');
+                addressInput.disabled = true;
+            }
+        }
+        
+        if (scheduleGroup) {
+            scheduleGroup.style.display = 'none';
+            // 요일 버튼들 비활성화
+            const dayButtons = scheduleGroup.querySelectorAll('.day-btn');
+            dayButtons.forEach(btn => {
+                btn.disabled = true;
+                btn.classList.remove('selected');
+            });
+        }
+        
+        if (timeGroup) {
+            timeGroup.style.display = 'none';
+            // 시간 선택 필드들 비활성화
+            const timeInputs = timeGroup.querySelectorAll('select, input');
+            timeInputs.forEach(input => {
+                input.disabled = true;
+                input.removeAttribute('required');
+            });
+        }
+        
+        if (reservationGroup) {
+            reservationGroup.style.display = 'none';
+            // 당일 예약 라디오 버튼들 비활성화
+            const reservationRadios = reservationGroup.querySelectorAll('input[type="radio"]');
+            reservationRadios.forEach(radio => {
+                radio.disabled = true;
+                radio.removeAttribute('required');
+            });
+        }
+        
+        if (reservationNotesGroup) {
+            reservationNotesGroup.style.display = 'none';
+            const notesTextarea = document.getElementById('addReservationNotes');
+            if (notesTextarea) {
+                notesTextarea.disabled = true;
+            }
+        }
+        
+        if (urlGroup) {
+            urlGroup.style.display = 'none';
+            const urlInput = document.getElementById('addUrl');
+            if (urlInput) {
+                urlInput.disabled = true;
+            }
+        }
+    } else {
+        // 다른 유형 선택 시 필드 활성화
+        if (addressGroup) {
+            addressGroup.style.display = 'block';
+            const addressInput = document.getElementById('addAddress');
+            if (addressInput) {
+                addressInput.setAttribute('required', 'required');
+                addressInput.disabled = false;
+            }
+        }
+        
+        if (scheduleGroup) {
+            scheduleGroup.style.display = 'block';
+            // 요일 버튼들 활성화
+            const dayButtons = scheduleGroup.querySelectorAll('.day-btn');
+            dayButtons.forEach(btn => {
+                btn.disabled = false;
+            });
+        }
+        
+        if (timeGroup) {
+            timeGroup.style.display = 'block';
+            // 시간 선택 필드들 활성화
+            const timeInputs = timeGroup.querySelectorAll('select, input');
+            timeInputs.forEach(input => {
+                input.disabled = false;
+                if (input.id === 'addStartHour' || input.id === 'addStartMinute' || input.id === 'addEndHour' || input.id === 'addEndMinute') {
+                    input.setAttribute('required', 'required');
+                }
+            });
+        }
+        
+        if (reservationGroup) {
+            reservationGroup.style.display = 'block';
+            // 당일 예약 라디오 버튼들 활성화
+            const reservationRadios = reservationGroup.querySelectorAll('input[type="radio"]');
+            reservationRadios.forEach(radio => {
+                radio.disabled = false;
+                radio.setAttribute('required', 'required');
+            });
+        }
+        
+        if (reservationNotesGroup) {
+            reservationNotesGroup.style.display = 'block';
+            const notesTextarea = document.getElementById('addReservationNotes');
+            if (notesTextarea) {
+                notesTextarea.disabled = false;
+            }
+        }
+        
+        if (urlGroup) {
+            urlGroup.style.display = 'block';
+            const urlInput = document.getElementById('addUrl');
+            if (urlInput) {
+                urlInput.disabled = false;
+            }
+        }
+    }
 }
 
 // 채널 이름 가져오기
@@ -1327,7 +1399,15 @@ function openPremiumModal(experienceId) {
                     <p class="company-name">${experience.companyName}</p>
                 </div>
                 
-                <div class="form-group">
+                <div class="premium-status">
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="isPremium" ${experience.isPremium ? 'checked' : ''}>
+                        <span class="checkmark"></span>
+                        프리미엄 체험단으로 설정
+                    </label>
+                </div>
+                
+                <div class="form-group" id="pointGroup" style="display: ${experience.isPremium ? 'block' : 'none'};">
                     <label for="premiumPoint">포인트 지급 금액 (원)</label>
                     <input type="number" id="premiumPoint" name="premiumPoint" 
                            value="${experience.premiumPoint || ''}" 
@@ -1335,19 +1415,11 @@ function openPremiumModal(experienceId) {
                            min="0" step="100">
                 </div>
                 
-                <div class="form-group">
+                <div class="form-group" id="descriptionGroup" style="display: ${experience.isPremium ? 'block' : 'none'};">
                     <label for="premiumDescription">포인트 지급 조건</label>
                     <textarea id="premiumDescription" name="premiumDescription" 
                               placeholder="포인트 지급 조건을 입력하세요 (선택사항)" 
                               rows="3">${experience.premiumDescription || ''}</textarea>
-                </div>
-                
-                <div class="premium-status">
-                    <label class="checkbox-label">
-                        <input type="checkbox" id="isPremium" ${experience.isPremium ? 'checked' : ''}>
-                        <span class="checkmark"></span>
-                        P 체험단으로 설정
-                    </label>
                 </div>
             </div>
             <div class="modal-footer">
@@ -1530,6 +1602,23 @@ function openPremiumModal(experienceId) {
     document.head.appendChild(style);
     document.body.appendChild(modal);
     
+    // 모달이 DOM에 추가된 후 필드 상태 초기화
+    setTimeout(() => {
+        togglePremiumFields();
+        
+        // 체크박스에 이벤트 리스너 추가
+        const isPremiumCheckbox = modal.querySelector('#isPremium');
+        if (isPremiumCheckbox) {
+            console.log('체크박스에 이벤트 리스너 추가');
+            isPremiumCheckbox.addEventListener('change', function() {
+                console.log('체크박스 상태 변경됨:', this.checked);
+                togglePremiumFields();
+            });
+        } else {
+            console.log('체크박스를 찾을 수 없어서 이벤트 리스너를 추가할 수 없습니다.');
+        }
+    }, 100);
+    
     // 모달 닫기 이벤트
     const closeBtn = modal.querySelector('.close-btn');
     closeBtn.addEventListener('click', closePremiumModal);
@@ -1550,6 +1639,90 @@ function closePremiumModal() {
     }
 }
 
+// 프리미엄 필드 토글
+function togglePremiumFields() {
+    console.log('togglePremiumFields 함수 호출됨');
+    
+    // 모달 내에서 요소들을 찾기
+    const modal = document.querySelector('.premium-modal');
+    if (!modal) {
+        console.log('프리미엄 모달을 찾을 수 없습니다.');
+        return;
+    }
+    
+    const isPremiumCheckbox = modal.querySelector('#isPremium');
+    const pointGroup = modal.querySelector('#pointGroup');
+    const descriptionGroup = modal.querySelector('#descriptionGroup');
+    
+    console.log('isPremiumCheckbox:', isPremiumCheckbox);
+    console.log('pointGroup:', pointGroup);
+    console.log('descriptionGroup:', descriptionGroup);
+    
+    if (!isPremiumCheckbox) {
+        console.log('isPremium 체크박스를 찾을 수 없습니다.');
+        return;
+    }
+    
+    if (!pointGroup) {
+        console.log('pointGroup을 찾을 수 없습니다.');
+        return;
+    }
+    
+    if (!descriptionGroup) {
+        console.log('descriptionGroup을 찾을 수 없습니다.');
+        return;
+    }
+    
+    const isPremium = isPremiumCheckbox.checked;
+    console.log('프리미엄 상태:', isPremium);
+    console.log('pointGroup 표시:', isPremium ? 'block' : 'none');
+    console.log('descriptionGroup 표시:', isPremium ? 'block' : 'none');
+    
+    pointGroup.style.display = isPremium ? 'block' : 'none';
+    descriptionGroup.style.display = isPremium ? 'block' : 'none';
+    
+    console.log('pointGroup 실제 display:', pointGroup.style.display);
+    console.log('descriptionGroup 실제 display:', descriptionGroup.style.display);
+    
+    // 프리미엄이 해제되면 포인트 필드 초기화
+    if (!isPremium) {
+        const premiumPoint = modal.querySelector('#premiumPoint');
+        const premiumDescription = modal.querySelector('#premiumDescription');
+        if (premiumPoint) premiumPoint.value = '';
+        if (premiumDescription) premiumDescription.value = '';
+    }
+}
+
+// 추천 체험단 토글
+function toggleRecommendedExperience(experienceId) {
+    console.log('추천 체험단 토글:', experienceId);
+    
+    const experiences = JSON.parse(localStorage.getItem('experiences') || '[]');
+    const experienceIndex = experiences.findIndex(exp => exp.id === experienceId);
+    
+    if (experienceIndex === -1) {
+        alert('체험단을 찾을 수 없습니다.');
+        return;
+    }
+    
+    // 추천 상태 토글
+    experiences[experienceIndex].isRecommended = !experiences[experienceIndex].isRecommended;
+    
+    // localStorage에 저장
+    localStorage.setItem('experiences', JSON.stringify(experiences));
+    
+    // 목록 새로고침
+    loadAdminExperiences();
+    
+    // 메인 페이지의 추천 체험단 섹션도 업데이트
+    if (typeof loadRecommendedExperiences === 'function') {
+        loadRecommendedExperiences();
+    }
+    
+    const status = experiences[experienceIndex].isRecommended ? '추천 체험단으로 설정' : '추천 체험단에서 해제';
+    alert(`${experiences[experienceIndex].title}이(가) ${status}되었습니다.`);
+}
+
 // P 체험단 설정 저장
 function savePremiumSettings(experienceId) {
     const experiences = JSON.parse(localStorage.getItem('experiences') || '[]');
@@ -1560,19 +1733,26 @@ function savePremiumSettings(experienceId) {
         return;
     }
     
-    const premiumPoint = document.getElementById('premiumPoint').value;
-    const premiumDescription = document.getElementById('premiumDescription').value;
-    const isPremium = document.getElementById('isPremium').checked;
+    // 모달 컨텍스트에서 안전하게 요소 조회
+    const modal = document.querySelector('.premium-modal');
+    const pointInputEl = modal ? modal.querySelector('#premiumPoint') : null;
+    const descEl = modal ? modal.querySelector('#premiumDescription') : null;
+    const isPremiumEl = modal ? modal.querySelector('#isPremium') : null;
+
+    const rawPoint = pointInputEl ? String(pointInputEl.value) : '';
+    const premiumPoint = parseInt(rawPoint.replace(/[^\d]/g, ''), 10) || 0; // 숫자만 추출
+    const premiumDescription = descEl ? descEl.value : '';
+    const isPremium = isPremiumEl ? isPremiumEl.checked : false;
     
     // 유효성 검사
-    if (isPremium && (!premiumPoint || premiumPoint <= 0)) {
-        alert('P 체험단으로 설정하려면 포인트 금액을 입력해주세요.');
+    if (isPremium && premiumPoint <= 0) {
+        alert('프리미엄 체험단으로 설정하려면 포인트 금액을 입력해주세요.');
         return;
     }
     
     // 데이터 업데이트
     experiences[experienceIndex].isPremium = isPremium;
-    experiences[experienceIndex].premiumPoint = isPremium ? parseInt(premiumPoint) : 0;
+    experiences[experienceIndex].premiumPoint = isPremium ? premiumPoint : 0;
     experiences[experienceIndex].premiumDescription = premiumDescription || '';
     
     // localStorage에 저장
@@ -2084,7 +2264,13 @@ document.addEventListener('DOMContentLoaded', function() {
 function handleThumbnailUpload(event) {
     const file = event.target.files[0];
     if (file) {
-        saveImageFile(file, 'editThumbnailPreview', '썸네일 이미지');
+        const preview = document.getElementById('editThumbnailPreview');
+        preview.innerHTML = `
+            <div class="uploaded-file">
+                <img src="${URL.createObjectURL(file)}" alt="새 썸네일" style="max-width: 200px; max-height: 150px; border-radius: 5px;">
+                <p>새 썸네일 이미지</p>
+            </div>
+        `;
     }
 }
 
@@ -2092,7 +2278,13 @@ function handleThumbnailUpload(event) {
 function handleReviewImageUpload(event) {
     const file = event.target.files[0];
     if (file) {
-        saveImageFile(file, 'reviewImagePreview', '리뷰 이미지');
+        const preview = document.getElementById('reviewImagePreview');
+        preview.innerHTML = `
+            <div class="uploaded-file">
+                <img src="${URL.createObjectURL(file)}" alt="새 이미지" style="max-width: 200px; max-height: 150px; border-radius: 5px;">
+                <p>새 이미지</p>
+            </div>
+        `;
     }
 }
 
@@ -2100,7 +2292,13 @@ function handleReviewImageUpload(event) {
 function handleHotplaceImageUpload(event) {
     const file = event.target.files[0];
     if (file) {
-        saveImageFile(file, 'hotplaceImagePreview', '맛집 이미지');
+        const preview = document.getElementById('hotplaceImagePreview');
+        preview.innerHTML = `
+            <div class="uploaded-file">
+                <img src="${URL.createObjectURL(file)}" alt="새 이미지" style="max-width: 200px; max-height: 150px; border-radius: 5px;">
+                <p>새 이미지</p>
+            </div>
+        `;
     }
 }
 
@@ -2108,85 +2306,14 @@ function handleHotplaceImageUpload(event) {
 function handleBannerImageUpload(event) {
     const file = event.target.files[0];
     if (file) {
-        saveImageFile(file, 'bannerUploadedFiles', '배너 이미지');
+        const preview = document.getElementById('bannerUploadedFiles');
+        preview.innerHTML = `
+            <div class="uploaded-file">
+                <img src="${URL.createObjectURL(file)}" alt="새 이미지" style="max-width: 200px; max-height: 150px; border-radius: 5px;">
+                <p>새 이미지</p>
+            </div>
+        `;
     }
-}
-
-// 공통 이미지 저장 함수
-function saveImageFile(file, previewElementId, imageType) {
-    const timestamp = Date.now();
-    const fileName = `${timestamp}_${file.name}`;
-    const imagePath = `images/${fileName}`;
-    
-    // 파일 저장 처리
-    if ('showSaveFilePicker' in window) {
-        saveFileWithFileSystemAPI(file, fileName);
-    } else {
-        downloadFile(file, fileName);
-    }
-    
-    // 미리보기 생성
-    const preview = document.getElementById(previewElementId);
-    preview.innerHTML = `
-        <div class="uploaded-file">
-            <img src="${imagePath}" alt="${imageType}" style="max-width: 200px; max-height: 150px; border-radius: 5px;">
-            <p>${imageType}</p>
-        </div>
-    `;
-    
-    // 로컬 스토리지에 이미지 경로 저장
-    saveImagePathToStorage(imagePath, file.name);
-}
-
-// File System Access API를 사용한 파일 저장
-async function saveFileWithFileSystemAPI(file, fileName) {
-    try {
-        const fileHandle = await window.showSaveFilePicker({
-            suggestedName: fileName,
-            types: [{
-                description: 'Image files',
-                accept: {
-                    'image/jpeg': ['.jpg', '.jpeg'],
-                    'image/png': ['.png']
-                }
-            }]
-        });
-        
-        const writable = await fileHandle.createWritable();
-        await writable.write(file);
-        await writable.close();
-        
-        console.log('파일이 성공적으로 저장되었습니다:', fileName);
-    } catch (error) {
-        console.log('파일 저장이 취소되었거나 실패했습니다:', error);
-        downloadFile(file, fileName);
-    }
-}
-
-// 다운로드 방식으로 파일 저장
-function downloadFile(file, fileName) {
-    const url = URL.createObjectURL(file);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = fileName;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-    
-    console.log('파일이 다운로드되었습니다. images 폴더에 수동으로 이동시켜주세요:', fileName);
-    alert(`파일이 다운로드되었습니다.\n파일명: ${fileName}\n\n다운로드 폴더에서 이 파일을 프로젝트의 images 폴더로 이동시켜주세요.`);
-}
-
-// 이미지 경로를 로컬 스토리지에 저장
-function saveImagePathToStorage(imagePath, originalFileName) {
-    const uploadedImages = JSON.parse(localStorage.getItem('uploadedImages') || '[]');
-    uploadedImages.push({
-        path: imagePath,
-        originalName: originalFileName,
-        uploadTime: new Date().toISOString()
-    });
-    localStorage.setItem('uploadedImages', JSON.stringify(uploadedImages));
 }
 
 // 모달 외부 클릭 시 닫기
@@ -2202,4 +2329,166 @@ window.onclick = function(event) {
     } else if (event.target === hotplaceModal) {
         closeHotplaceModal();
     }
+}
+
+// 체험단 필터링 함수들
+function filterExperiencesByStatus() {
+    const statusFilter = document.getElementById('statusFilter').value;
+    const categoryFilter = document.getElementById('categoryFilter').value;
+    loadExperiencesWithFilters(statusFilter, categoryFilter);
+}
+
+
+
+
+
+// 체험단 상태 확인 및 업데이트 (main-script.js와 동일한 함수)
+function checkAndUpdateExpiredExperiences() {
+    const experiences = JSON.parse(localStorage.getItem('experiences') || '[]');
+    const currentDate = new Date();
+    let hasUpdates = false;
+    
+    experiences.forEach(experience => {
+        const endDate = new Date(experience.endDate); // 모집 마감일
+        const experienceEndDate = new Date(experience.experienceEndDate || experience.endDate); // 체험 종료일
+        
+        // 체험 기간이 완전히 끝난 경우 (진행중 -> 종료)
+        if (experienceEndDate < currentDate && experience.status === 'ongoing') {
+            experience.status = 'expired';
+            experience.expiredAt = new Date().toISOString();
+            hasUpdates = true;
+            console.log(`체험단 "${experience.title}"이 완전히 종료되었습니다.`);
+        }
+        // 모집은 끝났지만 체험 기간은 아직 진행 중인 경우 (승인 -> 진행중)
+        else if (endDate < currentDate && experienceEndDate >= currentDate && experience.status === 'approved') {
+            experience.status = 'ongoing';
+            experience.ongoingAt = new Date().toISOString();
+            hasUpdates = true;
+            console.log(`체험단 "${experience.title}"이 진행중 상태로 변경되었습니다.`);
+        }
+        // 모집 마감일이 지났고 체험 기간도 끝난 경우 (승인 -> 종료)
+        else if (endDate < currentDate && experienceEndDate < currentDate && experience.status === 'approved') {
+            experience.status = 'expired';
+            experience.expiredAt = new Date().toISOString();
+            hasUpdates = true;
+            console.log(`체험단 "${experience.title}"이 종료되었습니다.`);
+        }
+    });
+    
+    // 변경사항이 있으면 localStorage 업데이트
+    if (hasUpdates) {
+        localStorage.setItem('experiences', JSON.stringify(experiences));
+        console.log('체험단 상태가 업데이트되었습니다.');
+        // 관리자 페이지가 열려있다면 데이터 새로고침
+        if (document.getElementById('experiencesContent')) {
+            loadAdminExperiences();
+        }
+    }
+    
+    return experiences;
+}
+
+// 체험단 필터링 함수들
+function filterExperiencesByStatus() {
+    const statusFilter = document.getElementById('statusFilter').value;
+    const categoryFilter = document.getElementById('categoryFilter').value;
+    loadExperiencesWithFilters(statusFilter, categoryFilter);
+}
+
+function filterExperiencesByCategory() {
+    const statusFilter = document.getElementById('statusFilter').value;
+    const categoryFilter = document.getElementById('categoryFilter').value;
+    loadExperiencesWithFilters(statusFilter, categoryFilter);
+}
+
+function loadExperiencesWithFilters(statusFilter = 'all', categoryFilter = 'all') {
+    const experiences = JSON.parse(localStorage.getItem('experiences') || '[]');
+    let filteredExperiences = experiences;
+    
+    // 상태별 필터링 (expired 제외)
+    if (statusFilter !== 'all') {
+        filteredExperiences = filteredExperiences.filter(exp => exp.status === statusFilter);
+    }
+    
+    // 카테고리별 필터링
+    if (categoryFilter !== 'all') {
+        const categoryName = getCategoryName(categoryFilter);
+        filteredExperiences = filteredExperiences.filter(exp => exp.category === categoryName);
+    }
+    
+    // 체험단 목록 표시
+    displayExperiencesList(filteredExperiences);
+}
+
+function displayExperiencesList(experiences) {
+    const experiencesList = document.getElementById('experiencesList');
+    if (!experiencesList) return;
+    
+    if (experiences.length === 0) {
+        experiencesList.innerHTML = '<div class="no-data">해당 조건에 맞는 체험단이 없습니다.</div>';
+        return;
+    }
+    
+    const experiencesHTML = experiences.map(exp => {
+        const statusBadge = getStatusBadge(exp.status);
+        const experienceEndDate = new Date(exp.experienceEndDate || exp.endDate);
+        const today = new Date();
+        const diffTime = experienceEndDate - today;
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        
+        return `
+            <div class="experience-item">
+                <div class="experience-info">
+                    <div class="experience-header">
+                        <h4>${exp.title}</h4>
+                        ${statusBadge}
+                    </div>
+                    <p class="experience-company">${exp.companyName || '회사명 미입력'}</p>
+                    <p class="experience-dates">
+                        모집기간: ${exp.startDate} ~ ${exp.endDate}
+                        ${exp.experienceEndDate ? ` | 체험기간: ${exp.experienceStartDate} ~ ${exp.experienceEndDate}` : ''}
+                        ${exp.status === 'ongoing' && diffDays > 0 ? ` | 체험 ${diffDays}일 남음` : (exp.status === 'ongoing' ? ' | 체험중' : '')}
+                    </p>
+                    <p class="experience-category">카테고리: ${exp.category || '미입력'}</p>
+                </div>
+                <div class="experience-actions">
+                    <button class="btn-small" onclick="viewExperienceDetails('${exp.id}')">
+                        <i class="fas fa-eye"></i> 보기
+                    </button>
+                    <button class="btn-small" onclick="editExperience('${exp.id}')">
+                        <i class="fas fa-edit"></i> 수정
+                    </button>
+                    <button class="btn-small ${exp.isRecommended ? 'btn-recommended' : 'btn-recommend'}" onclick="toggleRecommendedExperience('${exp.id}')">
+                        <i class="fas fa-star"></i> ${exp.isRecommended ? '추천해제' : '추천'}
+                    </button>
+                    <button class="btn-small ${exp.isPremium ? 'btn-premium' : 'btn-premium-set'}" onclick="openPremiumModal('${exp.id}')">
+                        <i class="fas fa-crown"></i> ${exp.isPremium ? '프리미엄' : '프리미엄설정'}
+                    </button>
+                    <button class="btn-small btn-danger" onclick="deleteExperience('${exp.id}')">
+                        <i class="fas fa-trash"></i> 삭제
+                    </button>
+                </div>
+            </div>
+        `;
+    }).join('');
+    
+    experiencesList.innerHTML = experiencesHTML;
+}
+
+function getStatusBadge(status) {
+    switch(status) {
+        case 'approved':
+            return '<span class="status-badge status-approved">등록됨</span>';
+        case 'ongoing':
+            return '<span class="status-badge status-ongoing">진행중</span>';
+        case 'expired':
+            return '<span class="status-badge status-expired">종료됨</span>';
+        default:
+            return '<span class="status-badge status-default">알 수 없음</span>';
+    }
+}
+
+function showExperiencesByStatus(status) {
+    document.getElementById('statusFilter').value = status;
+    filterExperiencesByStatus();
 }

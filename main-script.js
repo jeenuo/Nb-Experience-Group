@@ -6,6 +6,12 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // 배너 광고 로드 및 초기화
     loadBanners();
+    
+    // 임시 사용자 데이터 생성
+    createTempUsers();
+    
+    // 자동 로그인 확인
+    checkAutoLogin();
     startBannerRotation();
     
     // 핫플 맛집 로드
@@ -29,11 +35,15 @@ function loadRegisteredExperiences() {
         return; // 등록된 체험단이 없으면 기본 카드 유지
     }
     
-    // 기존 데이터에 isPopular 속성이 없는 경우 기본값 설정
+    // 기존 데이터에 isPopular, isRecommended 속성이 없는 경우 기본값 설정
     let needsUpdate = false;
     experiences = experiences.map(exp => {
         if (exp.isPopular === undefined) {
             exp.isPopular = false;
+            needsUpdate = true;
+        }
+        if (exp.isRecommended === undefined) {
+            exp.isRecommended = false;
             needsUpdate = true;
         }
         return exp;
@@ -44,12 +54,14 @@ function loadRegisteredExperiences() {
         localStorage.setItem('experiences', JSON.stringify(experiences));
     }
     
-    // 승인된 체험단만 필터링
-    const approvedExperiences = experiences.filter(exp => exp.status === 'approved');
-    const popularExperiences = approvedExperiences.filter(exp => exp.isPopular === true);
+    // 진행중 포함: 승인 또는 진행중 체험단만, 종료 제외
+    const approvedExperiences = experiences.filter(exp => exp.status !== 'expired' && (exp.status === 'approved' || exp.status === 'ongoing'));
+    const recommendedExperiences = approvedExperiences
+        .filter(exp => exp.isRecommended === true)
+        .sort((a, b) => (a.status === 'ongoing') - (b.status === 'ongoing')); // 진행중은 하단으로
     
     // 각 섹션에 새로운 체험단 카드 추가 (최대 6개)
-    addExperiencesToSection('추천 체험단', popularExperiences.slice(0, 4));
+    addExperiencesToSection('추천 체험단', recommendedExperiences.slice(0, 4));
     
     // 인기 체험단 (신청수가 많고 인기 있는 체험단들 - 추천 체험단 포함)
     const trendingExperiences = approvedExperiences
@@ -69,10 +81,14 @@ function loadRegisteredExperiences() {
             const bScore = (b.viewCount || 0) * 0.3 + (b.applicationCount || 0) * 0.7 + (bIsPopular * 1000);
             return bScore - aScore;
         });
-    displayExperiencesWithMore('trending', trendingExperiences, 6);
+    // 진행중은 목록 하단으로 정렬
+    const trendingOrdered = trendingExperiences.sort((a, b) => (a.status === 'ongoing') - (b.status === 'ongoing'));
+    displayExperiencesWithMore('trending', trendingOrdered, 6);
     
     // 신규 체험단 (최근 등록된 체험단)
-    const newExperiences = approvedExperiences.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+    const newExperiences = approvedExperiences
+        .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+        .sort((a, b) => (a.status === 'ongoing') - (b.status === 'ongoing'));
     displayExperiencesWithMore('new', newExperiences, 6);
     
     // 마감 임박 체험단 (마감일이 가까운 체험단)
@@ -86,6 +102,12 @@ function loadRegisteredExperiences() {
         })
         .sort((a, b) => new Date(a.endDate) - new Date(b.endDate));
     displayExperiencesWithMore('ending', endingExperiences, 6);
+    
+    // 종료된 체험단 (status가 'expired'인 체험단들)
+    const expiredExperiences = experiences
+        .filter(exp => exp.status === 'expired')
+        .sort((a, b) => new Date(b.expiredAt || b.endDate) - new Date(a.expiredAt || a.endDate));
+    displayExperiencesWithMore('expired', expiredExperiences, 6);
 }
 
 // 체험단을 제한된 개수로 표시하고 더보기 버튼 관리
@@ -129,12 +151,12 @@ function showMoreExperiences(sectionType) {
 }
 
 // 추천 체험단만 로드하는 별도 함수
-function loadPopularExperiences() {
+function loadRecommendedExperiences() {
     const experiences = JSON.parse(localStorage.getItem('experiences') || '[]');
-    const popularExperiences = experiences.filter(exp => exp.isPopular === true);
+    const recommendedExperiences = experiences.filter(exp => exp.isRecommended === true);
     
     // 추천 체험단 섹션만 업데이트
-    addExperiencesToSection('추천 체험단', popularExperiences.slice(0, 4));
+    addExperiencesToSection('추천 체험단', recommendedExperiences.slice(0, 4));
 }
 
 // 핫플 맛집 로드
@@ -428,8 +450,26 @@ function createExperienceCard(experience) {
     // 지역 텍스트 생성 (주소 정보 포함)
     const locationText = getLocationText(experience.region, experience.address);
     
+    // 체험단 상태 확인
+    const isExpired = experience.status === 'expired';
+    const isOngoing = experience.status === 'ongoing';
+    
+    // 진행중인 체험단의 경우 남은 체험 일수 계산
+    let statusText = '';
+    if (isExpired) {
+        statusText = '모집 종료';
+    } else if (isOngoing) {
+        const experienceEndDate = new Date(experience.experienceEndDate || experience.endDate);
+        const today = new Date();
+        const diffTime = experienceEndDate - today;
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        statusText = diffDays > 0 ? `체험 ${diffDays}일 남음` : '체험중';
+    } else {
+        statusText = daysLeft === 1 ? '오늘 마감' : `${daysLeft}일 남음`;
+    }
+    
     return `
-        <div class="experience-card" data-experience-id="${experience.id}" onclick="viewExperienceDetails('${experience.id}')">
+        <div class="experience-card ${isExpired ? 'expired-card' : ''} ${isOngoing ? 'ongoing-card' : ''}" data-experience-id="${experience.id}" onclick="viewExperienceDetails('${experience.id}')">
             <img src="${experience.thumbnail}" alt="${experience.title}" class="card-image" onerror="this.src='https://via.placeholder.com/300x220/9B59B6/FFFFFF?text=이미지'">
             <div class="card-content">
                 <div class="card-header">
@@ -439,12 +479,14 @@ function createExperienceCard(experience) {
                         <div class="card-location">${locationText}</div>
                     </div>
                     <div class="card-badges">
+                        ${isExpired ? '<div class="card-expired">종료됨</div>' : ''}
+                        ${isOngoing ? '<div class="card-ongoing">진행중</div>' : ''}
                         ${experience.isPopular ? '<div class="card-premium">프리미엄</div>' : ''}
                     </div>
                 </div>
                 
                 <div class="card-info">
-                    <span class="card-deadline">${daysLeft}일 남음</span>
+                    <span class="card-deadline">${statusText}</span>
                     <span class="card-participants">신청 ${experience.applicationCount || Math.floor(Math.random() * 100)}/${experience.participantCount || '10'}</span>
                 </div>
 
@@ -477,18 +519,6 @@ function createExperienceCard(experience) {
 // 이미지 로딩 오류 처리
 function handleImageError(img, title) {
     console.log('이미지 로딩 실패:', img.src);
-    
-    // 로컬 스토리지에서 이미지 경로 확인
-    const uploadedImages = JSON.parse(localStorage.getItem('uploadedImages') || '[]');
-    const matchingImage = uploadedImages.find(image => img.src.includes(image.originalName));
-    
-    if (matchingImage) {
-        console.log('로컬 이미지 경로로 재시도:', matchingImage.path);
-        img.src = matchingImage.path;
-        return;
-    }
-    
-    // 로컬 이미지도 없으면 플레이스홀더 사용
     img.src = `https://via.placeholder.com/300x200/9B59B6/FFFFFF?text=${encodeURIComponent(title)}`;
     img.style.objectFit = 'contain';
     img.style.backgroundColor = '#f8f9fa';
@@ -728,7 +758,7 @@ function viewExperienceDetails(experienceId) {
                         </div>
                         
                         <div class="card-info">
-                            <span class="card-deadline">${daysLeft}일 남음</span>
+                            <span class="card-deadline">${daysLeft === 1 ? '오늘 마감' : daysLeft + '일 남음'}</span>
                             <span class="card-participants">신청 ${Math.floor(Math.random() * 100)}/${experience.participantCount || '10'}</span>
                         </div>
 
@@ -776,6 +806,7 @@ function viewExperienceDetails(experienceId) {
                                 </div>
                             </div>
                             
+                            ${experience.type !== 'journalist' ? `
                             <div class="detail-section">
                                 <h4>방문 가능 일자 및 시간</h4>
                                 <p><strong>체험 기간:</strong> ${experience.experienceStartDate || '-'} ~ ${experience.experienceEndDate || '-'}</p>
@@ -789,6 +820,7 @@ function viewExperienceDetails(experienceId) {
                                     <p><strong>예약 시 주의사항:</strong> ${experience.reservationNotes}</p>
                                 ` : ''}
                             </div>
+                            ` : ''}
                         </div>
                     </div>
                 </div>
@@ -2044,4 +2076,981 @@ function submitApplication(experienceId) {
 // 검색 페이지로 이동
 function goToSearch() {
     window.location.href = 'search.html';
+}
+
+
+// 로그인 모달 관련 함수들
+function openLoginModal() {
+    // 이미 로그인된 상태인지 확인
+    const userIcon = document.querySelector('.fa-user');
+    if (userIcon && userIcon.title && userIcon.title.includes('로그인됨')) {
+        // 로그인된 상태면 로그아웃 확인
+        if (confirm('로그아웃하시겠습니까?')) {
+            logout();
+        }
+        return;
+    }
+    
+    const modal = document.getElementById('loginModal');
+    if (modal) {
+        modal.style.display = 'block';
+        document.body.style.overflow = 'hidden'; // 배경 스크롤 방지
+    }
+}
+
+function closeLoginModal() {
+    const modal = document.getElementById('loginModal');
+    if (modal) {
+        modal.style.display = 'none';
+        document.body.style.overflow = 'auto'; // 배경 스크롤 복원
+    }
+}
+
+// 로그인 폼 제출 처리
+document.addEventListener('DOMContentLoaded', function() {
+    const loginForm = document.getElementById('loginForm');
+    if (loginForm) {
+        loginForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            handleLogin();
+        });
+    }
+    
+    // 모달 외부 클릭 시 닫기
+    const loginModal = document.getElementById('loginModal');
+    if (loginModal) {
+        loginModal.addEventListener('click', function(e) {
+            if (e.target === loginModal) {
+                closeLoginModal();
+            }
+        });
+    }
+});
+
+function handleLogin() {
+    const email = document.getElementById('loginEmail').value;
+    const password = document.getElementById('loginPassword').value;
+    const autoLogin = document.getElementById('autoLogin').checked;
+    
+    if (!email || !password) {
+        alert('아이디와 비밀번호를 모두 입력해주세요.');
+        return;
+    }
+    
+    // 관리자 계정 확인 (이메일 형식 검증 없이)
+    if (email === 'AD1234' && password === '0000') {
+        // 관리자 로그인 성공
+        console.log('관리자 로그인 성공');
+        
+        // 관리자 로그인 상태를 세션 스토리지에 저장
+        sessionStorage.setItem('adminLoggedIn', 'true');
+        sessionStorage.setItem('adminUser', 'AD1234');
+        
+        // file:// 프로토콜에서 절대 경로로 이동
+        const currentPath = window.location.href;
+        const basePath = currentPath.substring(0, currentPath.lastIndexOf('/') + 1);
+        const adminPageUrl = basePath + 'admin.html';
+        
+        console.log('현재 경로:', currentPath);
+        console.log('관리자 페이지 URL:', adminPageUrl);
+        
+        closeLoginModal();
+        
+        // 즉시 페이지 이동 시도
+        try {
+            window.location.href = adminPageUrl;
+        } catch (e) {
+            console.error('페이지 이동 실패:', e);
+            // 새 창으로 열기
+            window.open(adminPageUrl, '_blank');
+        }
+    } else {
+        // 일반 사용자 로그인 처리
+        const users = JSON.parse(localStorage.getItem('users') || '[]');
+        let loginUser = null;
+        
+        // 이메일 전체 또는 @ 앞부분으로 로그인 시도
+        for (let user of users) {
+            const emailPrefix = user.email.split('@')[0];
+            
+            // 전체 이메일 또는 @ 앞부분으로 매칭
+            if (user.email === email || emailPrefix === email) {
+                if (user.password === password) {
+                    loginUser = user;
+                    break;
+                }
+            }
+        }
+        
+        if (loginUser) {
+            // 로그인 성공
+            console.log('사용자 로그인 성공:', loginUser);
+            
+            // 로그인 상태를 세션 스토리지에 저장
+            sessionStorage.setItem('userLoggedIn', 'true');
+            sessionStorage.setItem('currentUser', JSON.stringify(loginUser));
+            
+            // 자동 로그인 설정
+            if (autoLogin) {
+                localStorage.setItem('autoLogin', 'true');
+                localStorage.setItem('autoLoginUser', JSON.stringify(loginUser));
+            }
+            
+            closeLoginModal();
+            
+            // 사용자 상태 업데이트
+            updateUserStatus(loginUser.email, false);
+            
+            // 성공 메시지
+            alert(`${loginUser.name}님, ${t('login.welcome_back')}`);
+            
+            // 페이지 새로고침
+            location.reload();
+        } else {
+            // 잘못된 계정 정보
+            console.log('잘못된 로그인 시도:', { email, password, autoLogin });
+            alert('아이디 또는 비밀번호가 올바르지 않습니다.');
+            return;
+        }
+    }
+}
+
+function loginWithNaver() {
+    console.log('네이버 로그인 시도');
+    // 네이버 로그인 API 연동
+    alert(t('login.naver_login') + ' ' + t('message.preparing'));
+}
+
+function loginWithInstagram() {
+    console.log('인스타그램 로그인 시도');
+    // 인스타그램 로그인 API 연동
+    alert(t('login.instagram_login') + ' ' + t('message.preparing'));
+}
+
+function openSignupModal() {
+    console.log('회원가입 모달 열기');
+    const signupModal = document.getElementById('signupModal');
+    const userTypeSelection = document.getElementById('userTypeSelection');
+    const signupFormContainer = document.getElementById('signupFormContainer');
+    
+    // 초기 상태로 리셋
+    userTypeSelection.style.display = 'block';
+    signupFormContainer.style.display = 'none';
+    
+    // 선택된 카드 초기화
+    const cards = document.querySelectorAll('.user-type-card');
+    cards.forEach(card => card.classList.remove('selected'));
+    
+    // 폼 초기화
+    document.getElementById('signupForm').reset();
+    
+    signupModal.style.display = 'flex';
+}
+
+function closeSignupModal() {
+    const signupModal = document.getElementById('signupModal');
+    signupModal.style.display = 'none';
+}
+
+function selectUserType(type) {
+    console.log('사용자 유형 선택:', type);
+    
+    // 모든 카드에서 selected 클래스 제거
+    const cards = document.querySelectorAll('.user-type-card');
+    cards.forEach(card => card.classList.remove('selected'));
+    
+    // 선택된 카드에 selected 클래스 추가
+    event.currentTarget.classList.add('selected');
+    
+    // 선택된 유형을 저장
+    window.selectedUserType = type;
+    
+    // 폼으로 이동
+    setTimeout(() => {
+        showSignupForm(type);
+    }, 300);
+}
+
+function showSignupForm(userType) {
+    const userTypeSelection = document.getElementById('userTypeSelection');
+    const signupFormContainer = document.getElementById('signupFormContainer');
+    const businessInfoGroup = document.getElementById('businessInfoGroup');
+    const businessInfoGroup2 = document.getElementById('businessInfoGroup2');
+    const businessInfoGroup3 = document.getElementById('businessInfoGroup3');
+    
+    // 사용자 유형 선택 숨기기
+    userTypeSelection.style.display = 'none';
+    
+    // 폼 표시
+    signupFormContainer.style.display = 'block';
+    
+    // 자영업자인 경우 사업자 정보 필드 표시
+    if (userType === 'business') {
+        businessInfoGroup.style.display = 'block';
+        businessInfoGroup2.style.display = 'block';
+        businessInfoGroup3.style.display = 'block';
+        document.getElementById('signupBusinessName').required = true;
+        document.getElementById('signupBusinessNumber').required = true;
+        document.getElementById('signupBusinessLicense').required = true;
+        
+        // 파일 업로드 이벤트 리스너 추가
+        initializeFileUpload();
+    } else {
+        businessInfoGroup.style.display = 'none';
+        businessInfoGroup2.style.display = 'none';
+        businessInfoGroup3.style.display = 'none';
+        document.getElementById('signupBusinessName').required = false;
+        document.getElementById('signupBusinessNumber').required = false;
+        document.getElementById('signupBusinessLicense').required = false;
+    }
+}
+
+function goBackToUserType() {
+    const userTypeSelection = document.getElementById('userTypeSelection');
+    const signupFormContainer = document.getElementById('signupFormContainer');
+    
+    userTypeSelection.style.display = 'block';
+    signupFormContainer.style.display = 'none';
+}
+
+// 회원가입 폼 제출 처리
+document.addEventListener('DOMContentLoaded', function() {
+    const signupForm = document.getElementById('signupForm');
+    
+    if (signupForm) {
+        signupForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            handleSignup();
+        });
+    }
+});
+
+function handleSignup() {
+    const formData = new FormData(document.getElementById('signupForm'));
+    const userType = window.selectedUserType;
+    
+    // 필수 필드 검증
+    const email = formData.get('email');
+    const password = formData.get('password');
+    const passwordConfirm = formData.get('passwordConfirm');
+    const name = formData.get('name');
+    const phone = formData.get('phone');
+    const region = formData.get('region');
+    const agreeTerms = formData.get('agreeTerms');
+    
+    // 기본 검증
+    if (!email || !password || !passwordConfirm || !name || !phone || !region) {
+        alert('모든 필수 항목을 입력해주세요.');
+        return;
+    }
+    
+    // 이메일 형식 검증
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+        alert('올바른 이메일 형식을 입력해주세요.');
+        return;
+    }
+    
+    // 비밀번호 확인
+    if (password !== passwordConfirm) {
+        alert('비밀번호가 일치하지 않습니다.');
+        return;
+    }
+    
+    // 비밀번호 강도 검증 (최소 8자, 영문+숫자)
+    const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d@$!%*#?&]{8,}$/;
+    if (!passwordRegex.test(password)) {
+        alert('비밀번호는 8자 이상, 영문과 숫자를 포함해야 합니다.');
+        return;
+    }
+    
+    // 전화번호 형식 검증
+    const phoneRegex = /^[0-9-+\s()]+$/;
+    if (!phoneRegex.test(phone)) {
+        alert('올바른 전화번호 형식을 입력해주세요.');
+        return;
+    }
+    
+    // 약관 동의 확인
+    if (!agreeTerms) {
+        alert('이용약관 및 개인정보처리방침에 동의해주세요.');
+        return;
+    }
+    
+    // 자영업자 추가 검증
+    if (userType === 'business') {
+        const businessName = formData.get('businessName');
+        const businessNumber = formData.get('businessNumber');
+        const businessLicense = window.selectedBusinessLicense;
+        
+        if (!businessName || !businessNumber) {
+            alert('자영업자 정보를 모두 입력해주세요.');
+            return;
+        }
+        
+        // 사업자등록증 파일 검증
+        if (!businessLicense) {
+            alert('사업자등록증을 첨부해주세요.');
+            return;
+        }
+        
+        // 사업자등록번호 형식 검증 (10자리 숫자)
+        const businessNumberRegex = /^\d{10}$/;
+        if (!businessNumberRegex.test(businessNumber.replace(/-/g, ''))) {
+            alert('올바른 사업자등록번호 형식을 입력해주세요. (10자리 숫자)');
+            return;
+        }
+    }
+    
+    // 회원가입 처리
+    const userData = {
+        id: generateUserId(),
+        email: email,
+        password: password, // 실제로는 해시화해야 함
+        name: name,
+        phone: phone,
+        region: region,
+        userType: userType,
+        businessName: userType === 'business' ? formData.get('businessName') : null,
+        businessNumber: userType === 'business' ? formData.get('businessNumber') : null,
+        businessLicense: userType === 'business' ? {
+            fileName: window.selectedBusinessLicense.name,
+            fileSize: window.selectedBusinessLicense.size,
+            fileType: window.selectedBusinessLicense.type,
+            uploadDate: new Date().toISOString()
+        } : null,
+        agreeMarketing: formData.get('agreeMarketing') === 'on',
+        createdAt: new Date().toISOString(),
+        status: 'active'
+    };
+    
+    // 로컬 스토리지에 사용자 데이터 저장
+    const existingUsers = JSON.parse(localStorage.getItem('users') || '[]');
+    existingUsers.push(userData);
+    localStorage.setItem('users', JSON.stringify(existingUsers));
+    
+    console.log('회원가입 성공:', userData);
+    
+    // 성공 메시지
+    alert(`${userType === 'influencer' ? '인플루언서' : '자영업자'} 회원가입이 완료되었습니다!`);
+    
+    // 모달 닫기
+    closeSignupModal();
+    
+    // 로그인 모달 열기
+    setTimeout(() => {
+        openLoginModal();
+    }, 500);
+}
+
+function generateUserId() {
+    return 'user_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+}
+
+// 자동 로그인 확인
+function checkAutoLogin() {
+    const autoLogin = localStorage.getItem('autoLogin');
+    const autoLoginUser = localStorage.getItem('autoLoginUser');
+    
+    if (autoLogin === 'true' && autoLoginUser) {
+        try {
+            const user = JSON.parse(autoLoginUser);
+            
+            // 세션 스토리지에 로그인 상태 저장
+            sessionStorage.setItem('userLoggedIn', 'true');
+            sessionStorage.setItem('currentUser', JSON.stringify(user));
+            
+            // 사용자 상태 업데이트
+            updateUserStatus(user.email, false);
+            
+            console.log('자동 로그인 성공:', user.name);
+        } catch (e) {
+            console.error('자동 로그인 실패:', e);
+            // 자동 로그인 데이터 삭제
+            localStorage.removeItem('autoLogin');
+            localStorage.removeItem('autoLoginUser');
+        }
+    }
+}
+
+// 임시 사용자 데이터 생성
+function createTempUsers() {
+    const existingUsers = JSON.parse(localStorage.getItem('users') || '[]');
+    
+    // 임시 사용자가 이미 있는지 확인
+    const hasTempUsers = existingUsers.some(user => user.email.includes('temp'));
+    
+    if (!hasTempUsers) {
+        const tempUsers = [
+            {
+                id: 'temp_influencer_1',
+                email: 'influencer1@temp.com',
+                password: '123456',
+                name: '김인플루언서',
+                phone: '010-1234-5678',
+                region: '서울',
+                userType: 'influencer',
+                businessName: null,
+                businessNumber: null,
+                businessLicense: null,
+                agreeMarketing: true,
+                createdAt: new Date().toISOString(),
+                status: 'active',
+                profile: {
+                    instagram: '@kim_influencer',
+                    followers: 15000,
+                    categories: ['뷰티', '패션'],
+                    bio: '뷰티와 패션을 사랑하는 인플루언서입니다.'
+                }
+            },
+            {
+                id: 'temp_business_1',
+                email: 'business1@temp.com',
+                password: '123456',
+                name: '박사업자',
+                phone: '010-9876-5432',
+                region: '경기',
+                userType: 'business',
+                businessName: '테스트카페',
+                businessNumber: '1234567890',
+                businessLicense: {
+                    fileName: 'business_license.pdf',
+                    fileSize: 1024000,
+                    fileType: 'application/pdf',
+                    uploadDate: new Date().toISOString()
+                },
+                agreeMarketing: true,
+                createdAt: new Date().toISOString(),
+                status: 'active'
+            },
+            {
+                id: 'temp_business_2',
+                email: 'cafe_owner@temp.com',
+                password: 'cafe123',
+                name: '이카페사장',
+                phone: '010-5555-1234',
+                region: '서울',
+                userType: 'business',
+                businessName: '달콤한카페',
+                businessNumber: '9876543210',
+                businessLicense: {
+                    fileName: 'cafe_license.jpg',
+                    fileSize: 2048000,
+                    fileType: 'image/jpeg',
+                    uploadDate: new Date().toISOString()
+                },
+                agreeMarketing: true,
+                createdAt: new Date().toISOString(),
+                status: 'active'
+            },
+            {
+                id: 'temp_business_3',
+                email: 'restaurant@temp.com',
+                password: 'food123',
+                name: '최맛집사장',
+                phone: '010-7777-8888',
+                region: '부산',
+                userType: 'business',
+                businessName: '바다맛집',
+                businessNumber: '5555666677',
+                businessLicense: {
+                    fileName: 'restaurant_license.pdf',
+                    fileSize: 1536000,
+                    fileType: 'application/pdf',
+                    uploadDate: new Date().toISOString()
+                },
+                agreeMarketing: false,
+                createdAt: new Date().toISOString(),
+                status: 'active'
+            }
+        ];
+        
+        // 기존 사용자에 임시 사용자 추가
+        const allUsers = [...existingUsers, ...tempUsers];
+        localStorage.setItem('users', JSON.stringify(allUsers));
+        
+        console.log('임시 사용자 데이터 생성 완료');
+        console.log('인플루언서 계정: influencer1@temp.com / 123456');
+        console.log('자영업자 계정 1: business1@temp.com / 123456');
+        console.log('자영업자 계정 2: cafe_owner@temp.com / cafe123');
+        console.log('자영업자 계정 3: restaurant@temp.com / food123');
+    }
+}
+
+// 파일 업로드 초기화
+function initializeFileUpload() {
+    const fileInput = document.getElementById('signupBusinessLicense');
+    const fileUploadArea = document.querySelector('.file-upload-area');
+    const fileUploadContent = document.getElementById('fileUploadContent');
+    const filePreview = document.getElementById('filePreview');
+    const filePreviewImage = document.getElementById('filePreviewImage');
+    const fileName = document.getElementById('fileName');
+    
+    if (!fileInput || !fileUploadArea) return;
+    
+    // 파일 선택 이벤트
+    fileInput.addEventListener('change', function(e) {
+        handleFileSelect(e.target.files[0]);
+    });
+    
+    // 드래그 앤 드롭 이벤트
+    fileUploadArea.addEventListener('dragover', function(e) {
+        e.preventDefault();
+        fileUploadArea.classList.add('dragover');
+    });
+    
+    fileUploadArea.addEventListener('dragleave', function(e) {
+        e.preventDefault();
+        fileUploadArea.classList.remove('dragover');
+    });
+    
+    fileUploadArea.addEventListener('drop', function(e) {
+        e.preventDefault();
+        fileUploadArea.classList.remove('dragover');
+        
+        const files = e.dataTransfer.files;
+        if (files.length > 0) {
+            handleFileSelect(files[0]);
+        }
+    });
+}
+
+// 파일 선택 처리
+function handleFileSelect(file) {
+    if (!file) return;
+    
+    // 파일 크기 검증 (5MB)
+    const maxSize = 5 * 1024 * 1024; // 5MB
+    if (file.size > maxSize) {
+        alert('파일 크기는 5MB를 초과할 수 없습니다.');
+        return;
+    }
+    
+    // 파일 타입 검증
+    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'application/pdf'];
+    if (!allowedTypes.includes(file.type)) {
+        alert('JPG, PNG, PDF 파일만 업로드 가능합니다.');
+        return;
+    }
+    
+    // 파일 미리보기 표시
+    const fileUploadContent = document.getElementById('fileUploadContent');
+    const filePreview = document.getElementById('filePreview');
+    const filePreviewImage = document.getElementById('filePreviewImage');
+    const fileName = document.getElementById('fileName');
+    
+    fileUploadContent.style.display = 'none';
+    filePreview.style.display = 'flex';
+    
+    // 이미지 파일인 경우 미리보기 표시
+    if (file.type.startsWith('image/')) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            filePreviewImage.src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+    } else {
+        // PDF 파일인 경우 아이콘 표시
+        filePreviewImage.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjYwIiBoZWlnaHQ9IjYwIiByeD0iOCIgZmlsbD0iI0Y1RjVGNSIvPgo8cGF0aCBkPSJNMTUgMTVIMzVWMzVIMTVWMTVaIiBzdHJva2U9IiM2Njc5RUEiIHN0cm9rZS13aWR0aD0iMiIgZmlsbD0ibm9uZSIvPgo8cGF0aCBkPSJNMjAgMjBIMzBWMjVIMjBWMjBaIiBzdHJva2U9IiM2Njc5RUEiIHN0cm9rZS13aWR0aD0iMiIgZmlsbD0ibm9uZSIvPgo8cGF0aCBkPSJNMjAgMzBIMzBWMzVIMjBWMzBaIiBzdHJva2U9IiM2Njc5RUEiIHN0cm9rZS13aWR0aD0iMiIgZmlsbD0ibm9uZSIvPgo8L3N2Zz4K';
+    }
+    
+    fileName.textContent = file.name;
+    
+    // 파일을 전역 변수에 저장
+    window.selectedBusinessLicense = file;
+}
+
+// 파일 삭제
+function removeFile() {
+    const fileInput = document.getElementById('signupBusinessLicense');
+    const fileUploadContent = document.getElementById('fileUploadContent');
+    const filePreview = document.getElementById('filePreview');
+    
+    fileInput.value = '';
+    fileUploadContent.style.display = 'block';
+    filePreview.style.display = 'none';
+    
+    // 전역 변수에서 파일 제거
+    window.selectedBusinessLicense = null;
+}
+
+function updateUserStatus(email, isAdmin = false) {
+    // 헤더의 사용자 아이콘을 로그인된 상태로 변경
+    const userIcon = document.querySelector('.fa-user');
+    if (userIcon) {
+        userIcon.style.color = isAdmin ? '#ff6b6b' : '#667eea';
+        userIcon.title = isAdmin ? `관리자 로그인됨: ${email}` : `로그인됨: ${email}`;
+        
+        // 관리자인 경우 아이콘 변경
+        if (isAdmin) {
+            userIcon.className = 'fas fa-user-shield';
+        }
+        
+        // 클릭 이벤트 추가 (프로필 페이지 또는 로그아웃)
+        userIcon.onclick = function() {
+            const userLoggedIn = sessionStorage.getItem('userLoggedIn');
+            const adminLoggedIn = sessionStorage.getItem('adminLoggedIn');
+            
+            if (adminLoggedIn) {
+                // 관리자는 관리자 페이지로
+                window.location.href = 'admin.html';
+            } else if (userLoggedIn) {
+                // 일반 사용자는 프로필 페이지로
+                window.location.href = 'profile.html';
+            } else {
+                // 로그인되지 않은 경우 로그인 모달
+                openLoginModal();
+            }
+        };
+    }
+}
+
+// 로그아웃 함수
+function logout() {
+    // 세션 스토리지에서 로그인 정보 제거
+    sessionStorage.removeItem('userLoggedIn');
+    sessionStorage.removeItem('currentUser');
+    sessionStorage.removeItem('adminLoggedIn');
+    sessionStorage.removeItem('adminUser');
+    
+    // 자동 로그인 정보 제거
+    localStorage.removeItem('autoLogin');
+    localStorage.removeItem('autoLoginUser');
+    
+    // 사용자 아이콘 원래 상태로 복원
+    const userIcon = document.querySelector('.fa-user');
+    if (userIcon) {
+        userIcon.style.color = '';
+        userIcon.title = '로그인';
+        userIcon.className = 'fas fa-user';
+        userIcon.onclick = function() {
+            openLoginModal();
+        };
+    }
+    
+    console.log('로그아웃 완료');
+    alert('로그아웃 되었습니다.');
+    
+    // 페이지 새로고침
+    location.reload();
+}
+
+function showAdminPanel() {
+    // 관리자 패널을 표시하는 로직
+    // 기존 admin.html의 관리자 패널을 현재 페이지에 표시
+    window.location.href = 'admin.html';
+}
+
+function logout() {
+    // 로그아웃 처리
+    const userIcon = document.querySelector('.fa-user');
+    if (userIcon) {
+        userIcon.style.color = '';
+        userIcon.className = 'fas fa-user';
+        userIcon.title = '';
+    }
+    
+    // 관리자 패널 숨기기
+    const adminPanel = document.getElementById('adminPanel');
+    if (adminPanel) {
+        adminPanel.style.display = 'none';
+    }
+    
+    alert('로그아웃되었습니다.');
+}
+
+// ESC 키로 모달 닫기
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        closeLoginModal();
+    }
+});
+
+// 체험단 상태 확인 및 업데이트 (진행중, 종료)
+function checkAndUpdateExpiredExperiences() {
+    const experiences = JSON.parse(localStorage.getItem('experiences') || '[]');
+    const currentDate = new Date();
+    let hasUpdates = false;
+    
+    experiences.forEach(experience => {
+        const endDate = new Date(experience.endDate);
+        const experienceEndDate = new Date(experience.experienceEndDate || experience.endDate);
+        
+        // 체험 기간이 완전히 끝난 경우 (진행중 -> 종료)
+        if (experienceEndDate < currentDate && experience.status === 'ongoing') {
+            experience.status = 'expired';
+            experience.expiredAt = new Date().toISOString();
+            hasUpdates = true;
+            console.log(`체험단 "${experience.title}"이 완전히 종료되었습니다.`);
+        }
+        // 모집은 끝났지만 체험 기간은 아직 진행 중인 경우 (승인 -> 진행중)
+        else if (endDate < currentDate && experienceEndDate >= currentDate && experience.status === 'approved') {
+            experience.status = 'ongoing';
+            experience.ongoingAt = new Date().toISOString();
+            hasUpdates = true;
+            console.log(`체험단 "${experience.title}"이 진행중 상태로 변경되었습니다.`);
+        }
+        // 모집 마감일이 지났고 체험 기간도 끝난 경우 (진행중이 아닌 경우)
+        else if (endDate < currentDate && experienceEndDate < currentDate && experience.status !== 'expired') {
+            experience.status = 'expired';
+            experience.expiredAt = new Date().toISOString();
+            hasUpdates = true;
+            console.log(`체험단 "${experience.title}"이 종료되었습니다.`);
+        }
+    });
+    
+    // 변경사항이 있으면 localStorage 업데이트
+    if (hasUpdates) {
+        localStorage.setItem('experiences', JSON.stringify(experiences));
+        console.log('체험단 상태가 업데이트되었습니다.');
+    }
+    
+    return experiences;
+}
+
+// 페이지 로드 시 체험단 상태 확인
+document.addEventListener('DOMContentLoaded', function() {
+    checkAndUpdateExpiredExperiences();
+    loadReviews();
+});
+
+// 준비중 팝업 표시
+function showComingSoon(serviceName) {
+    alert(`${serviceName} 서비스는 현재 준비중입니다.\n빠른 시일 내에 서비스할 예정입니다.`);
+}
+
+
+// 리뷰 로드
+function loadReviews() {
+    let reviews = JSON.parse(localStorage.getItem('reviews') || '[]');
+    
+    // 기존 데이터에 active 속성이 없는 경우 기본값 설정
+    let hasUpdates = false;
+    reviews = reviews.map(review => {
+        if (review.active === undefined) {
+            review.active = true;
+            hasUpdates = true;
+        }
+        return review;
+    });
+    
+    // 업데이트된 데이터가 있으면 다시 저장
+    if (hasUpdates) {
+        localStorage.setItem('reviews', JSON.stringify(reviews));
+    }
+    
+    // active가 true인 리뷰만 표시
+    const activeReviews = reviews.filter(review => review.active === true);
+    
+    const reviewGrid = document.getElementById('reviewGrid');
+    
+    if (activeReviews.length === 0) {
+        // 임시 리뷰 데이터 생성
+        const tempReviews = [
+            {
+                id: 'rev1',
+                channel: 'instagram',
+                channelName: '인스타그램',
+                title: '맛있는 카페 체험단 후기',
+                author: '김리뷰어',
+                content: '정말 맛있는 커피와 디저트를 체험했습니다. 분위기도 좋고 직원분들도 친절하셨어요!',
+                rating: 5,
+                date: '2024-02-15',
+                keywords: ['강남 카페', '디저트 맛집', '인스타 감성'],
+                link: 'https://instagram.com/review1',
+                active: true
+            },
+            {
+                id: 'rev2',
+                channel: 'youtube',
+                channelName: '유튜브',
+                title: '뷰티 제품 체험단 리뷰',
+                author: '박뷰티',
+                content: '새로 출시된 립스틱을 체험해봤는데 색상도 예쁘고 지속력도 좋았어요. 추천합니다!',
+                rating: 4,
+                date: '2024-02-10',
+                keywords: ['뷰티', '립스틱', '화장품'],
+                link: 'https://youtube.com/review2',
+                active: true
+            },
+            {
+                id: 'rev3',
+                channel: 'tiktok',
+                channelName: '틱톡',
+                title: '패션 체험단 쇼츠',
+                author: '이패션',
+                content: '신상 의류를 체험해봤는데 디자인도 예쁘고 착용감도 좋았어요! #패션 #체험단',
+                rating: 5,
+                date: '2024-02-08',
+                keywords: ['패션', '의류', '스타일'],
+                link: 'https://tiktok.com/review3',
+                active: true
+            }
+        ];
+        
+        localStorage.setItem('reviews', JSON.stringify(tempReviews));
+        displayReviews(tempReviews);
+        return;
+    }
+    
+    displayReviews(activeReviews);
+}
+
+// 리뷰 표시
+function displayReviews(reviews) {
+    const reviewGrid = document.getElementById('reviewGrid');
+    
+    if (reviews.length === 0) {
+        reviewGrid.innerHTML = `
+            <div class="empty-state">
+                <i class="fas fa-star"></i>
+                <h3>등록된 리뷰가 없습니다</h3>
+                <p>관리자가 리뷰를 등록하면 여기에 표시됩니다.</p>
+            </div>
+        `;
+        return;
+    }
+    
+    reviewGrid.innerHTML = '';
+    reviews.forEach((review, index) => {
+        const reviewCard = createReviewCard(review, index);
+        reviewGrid.appendChild(reviewCard);
+    });
+}
+
+// 리뷰 카드 생성
+function createReviewCard(review, index) {
+    const card = document.createElement('div');
+    card.className = 'review-card';
+    card.innerHTML = `
+        <div class="review-image">
+            ${review.image ? 
+                `<img src="${review.image}" alt="${review.title}">` : 
+                `<div class="placeholder"><i class="fas fa-${getChannelIcon(review.channel)}"></i></div>`
+            }
+            <div class="review-category">- ${getChannelTag(review.channel)}</div>
+        </div>
+        <div class="review-content">
+            <h3 class="review-name">${review.title}</h3>
+            <p class="review-description">${review.content}</p>
+            <div class="review-meta">
+                <div class="review-author">
+                    <i class="fas fa-user"></i>
+                    <span>${review.author}</span>
+                </div>
+                <div class="review-date">
+                    <i class="fas fa-calendar"></i>
+                    <span>${review.date}</span>
+                </div>
+            </div>
+            <div class="review-rating">
+                <div class="review-stars">${getStarRating(review.rating)}</div>
+                <span class="review-rating-text">(${review.rating}점)</span>
+            </div>
+            ${review.keywords && review.keywords.length > 0 ? `
+                <div class="review-keywords">
+                    ${review.keywords.map(keyword => `<span class="review-keyword-tag">${keyword}</span>`).join('')}
+                </div>
+            ` : ''}
+        </div>
+        <div class="review-actions">
+            <div class="review-actions-left">
+                <button class="review-action-btn" onclick="toggleReviewFavorite(${index})" title="즐겨찾기">
+                    <i class="fas fa-star"></i>
+                </button>
+                <button class="review-action-btn" onclick="viewReviewDetails(${index})" title="상세보기">
+                    <i class="fas fa-edit"></i>
+                </button>
+                <button class="review-action-btn" onclick="toggleReviewLike(${index})" title="좋아요">
+                    <i class="fas fa-heart"></i>
+                </button>
+                <button class="review-action-btn" onclick="shareReview(${index})" title="공유">
+                    <i class="fas fa-share"></i>
+                </button>
+            </div>
+            ${review.link ? 
+                `<button class="review-view-btn" onclick="openReviewLink('${review.link}')">원문 보기</button>` : 
+                `<div class="review-status">무료 체험</div>`
+            }
+        </div>
+    `;
+    return card;
+}
+
+// 채널 아이콘 반환
+function getChannelIcon(channel) {
+    const icons = {
+        'instagram': 'camera',
+        'youtube': 'play',
+        'tiktok': 'music',
+        'xiaohongshu': 'heart',
+        'twitter': 'twitter',
+        'blog': 'blog'
+    };
+    return icons[channel] || 'star';
+}
+
+// 채널 태그 반환
+function getChannelTag(channel) {
+    const tags = {
+        'instagram': '인스타그램',
+        'youtube': '유튜브',
+        'tiktok': '틱톡',
+        'xiaohongshu': '샤오홍슈',
+        'twitter': 'X(트위터)',
+        'blog': '블로그'
+    };
+    return tags[channel] || '리뷰';
+}
+
+// 별점 표시 생성
+function getStarRating(rating) {
+    const fullStars = Math.floor(rating);
+    const hasHalfStar = rating % 1 !== 0;
+    let stars = '';
+    
+    for (let i = 0; i < fullStars; i++) {
+        stars += '★';
+    }
+    
+    if (hasHalfStar) {
+        stars += '☆';
+    }
+    
+    return stars;
+}
+
+// 리뷰 관련 액션 함수들
+function toggleReviewFavorite(index) {
+    alert('즐겨찾기에 추가되었습니다.');
+}
+
+function viewReviewDetails(index) {
+    alert('리뷰 상세보기 페이지로 이동합니다.');
+}
+
+function toggleReviewLike(index) {
+    alert('좋아요가 추가되었습니다.');
+}
+
+function shareReview(index) {
+    if (navigator.share) {
+        navigator.share({
+            title: '리뷰 공유',
+            text: '이달의 리뷰를 확인해보세요!',
+            url: window.location.href
+        });
+    } else {
+        navigator.clipboard.writeText(window.location.href).then(() => {
+            alert('리뷰 링크가 클립보드에 복사되었습니다!');
+        });
+    }
+}
+
+function openReviewLink(url) {
+    if (url) {
+        window.open(url, '_blank');
+    } else {
+        alert('리뷰 링크가 없습니다.');
+    }
 }
